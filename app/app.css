@@ -14,6 +14,7 @@
   --color-accent: #1ed760;
   --color-accent-hover: #3be477;
   --color-on-accent: #000000;
+  --color-danger: #f15e6c;
 
   --font-sans:
     "Figtree Variable", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",

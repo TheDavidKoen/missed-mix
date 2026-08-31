@@ -1,6 +1,7 @@
 import { AuthPanel } from "~/components/AuthPanel";
 import { AUTH, SITE } from "~/content";
-import { beginSignIn } from "~/lib/auth";
+import { submitCredentials } from "~/lib/auth";
+import { cloudflareContext } from "~/lib/context";
 import type { Route } from "./+types/register";
 
 export function meta() {
@@ -10,10 +11,10 @@ export function meta() {
   ];
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  return beginSignIn(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  return submitCredentials(request, "register", context.get(cloudflareContext).env);
 }
 
 export default function Register({ actionData }: Route.ComponentProps) {
-  return <AuthPanel intent="register" error={actionData?.error} />;
+  return <AuthPanel intent="register" result={actionData} />;
 }

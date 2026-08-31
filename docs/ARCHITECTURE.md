@@ -47,15 +47,16 @@ because React Router 8 ships no Pages adapter. See
 | Copy | `app/content.ts` | Every user-facing string. |
 | Tokens | `app/app.css` | Colour, type, radius, easing, under `@theme`. |
 
-Route modules stay thin on purpose. `app/routes/login.tsx` is fifteen lines: its
-action calls `beginSignIn` and its component renders `AuthPanel`. When stage 2
-replaces the `501` with a real OAuth redirect, one function in `app/lib/auth.ts`
-changes and both routes follow.
+Route modules stay thin on purpose. `app/routes/login.tsx` is sixteen lines: its
+action calls `submitCredentials` and its component renders `AuthPanel`. All of the
+work, validation, hashing, the Atlas round trip and the session cookie, lives in
+`app/lib/`, so the route file did not grow when stage 2 landed.
 
 `login.tsx` and `register.tsx` are deliberately near-identical rather than merged.
-They differ in copy today and will differ in where a first-time account lands
-after the callback. Two thin files that diverge cleanly beat one file with a
-branch in it.
+They pass a different intent, which already selects a different schema, and will
+diverge further: registration creates a record and lands on onboarding, sign-in
+verifies one and lands on the feed. Two thin files that diverge cleanly beat one
+file with a branch in it.
 
 ## Validation
 
@@ -64,22 +65,34 @@ it. That includes form fields, query strings, cookies and third-party API
 responses.
 
 Schemas live in `app/lib/` so one definition serves the form, the action and,
-from stage 3, the database layer. `providerSchema` is both the allowlist an
-action validates against and the list the UI iterates to render buttons, so a
-provider cannot appear in the interface without being accepted by the server, or
-the reverse.
+from stage 3, the database layer.
+
+`registerSchema` and `loginSchema` are deliberately different rather than shared.
+Registration carries the policy: length bounds and the permitted character set.
+Sign-in requires only that both fields are present, because an account created
+before a rule changed must still be able to get in, and because reporting which
+policy a stored password fails hands a stranger free reconnaissance.
 
 ## Identity and data
 
-No passwords exist anywhere in the system ([ADR 0004](adr/0004-oauth-only-identity.md)).
-Sign-in is Google or Discord. Stored identity is a provider ID and an email
-address.
+An account is a username and a password, and nothing else
+([ADR 0008](adr/0008-demo-credentials.md), superseding
+[ADR 0004](adr/0004-oauth-only-identity.md)). There is no email address and no
+third-party identity, so nothing here links a profile to a real account elsewhere.
+
+Credentials are stored as PBKDF2-HMAC-SHA-256 digests with a per-user random salt,
+from stage 2. bcrypt and Argon2 are unavailable on the Workers runtime without
+shipping WASM, which is the constraint driving that choice rather than a
+preference. Verification compares digests. Sign-in failures are generic, and the
+sign-in route is rate limited from stage 2 rather than stage 9, because a password
+endpoint without one is the exact flaw in the app this replaces.
 
 Planned personal data, and the rules it carries:
 
 | Data | From | Rule |
 |---|---|---|
-| Provider ID, email | OAuth callback | Never rendered to another user |
+| Username | Registration | Public to signed-in users. It is the identifier |
+| Password digest | Registration | Never leaves the database, never logged, never echoed |
 | Display name, bio | Onboarding | Public to signed-in users |
 | Avatar | R2 upload | Public to signed-in users, content-sniffed on upload |
 | Birth year | Onboarding | Year only, never a full date. Displayed as an age band |
@@ -105,18 +118,22 @@ In place now:
 
 | Concern | Approach |
 |---|---|
-| Passwords | None stored, none accepted |
+| Password policy | Enforced on registration, never on sign-in |
+| Password echo | Username repopulates a failed submit, the password never does |
 | Response headers | Set at the edge entry, asserted by `pnpm run budget` |
 | Server bundle | Not reachable over HTTP |
 | Input validation | Zod at every boundary |
-| Third-party requests | None. Fonts self-hosted, provider marks inline SVG |
-| Sign-in initiation | `POST`, so a prefetch or link scanner cannot start it |
+| Third-party requests | None from the browser. The server reaches Atlas ([ADR 0009](adr/0009-mongodb-atlas-over-d1.md)) |
+| Sign-in submission | `POST` only, so credentials never reach a URL or a log |
+| Password hashing | PBKDF2-HMAC-SHA-256, per-user salt, digests compared in constant time |
+| Session cookie | Signed, `HttpOnly`, `SameSite=Lax`, `Secure` in production, 7 days |
+| Sign-in rate limit | 8 attempts per minute per IP and username, in-isolate |
 
 Deferred, with the stage that closes each:
 
 | Gap | Stage |
 |---|---|
-| Session cookies, CSRF tokens | 2 |
+| CSRF tokens | 2, still open |
 | Upload size limits and content sniffing | 4 |
 | Rate limiting | 7 for vibrations, 9 globally |
 | Content Security Policy | 9 |

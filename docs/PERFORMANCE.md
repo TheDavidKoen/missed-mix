@@ -19,7 +19,7 @@ never sent anywhere.
 
 | Bucket | Budget | Measured |
 |---|---|---|
-| Client JavaScript | 125 KB | 112.4 KB |
+| Client JavaScript | 125 KB | 102.6 KB |
 | CSS | 8 KB | 4.0 KB |
 | Fonts | 35 KB | 29.7 KB |
 
@@ -32,19 +32,23 @@ Measured 2026-08-31, at stage 1.
 | `entry.client` | 56.6 KB | Every route |
 | `jsx-runtime` | 37.2 KB | Every route |
 | `lib` | 3.9 KB | Every route |
-| `AuthPanel` | 10.9 KB | `/login`, `/register` only |
-| `content` | 1.2 KB | Every route |
+| `AuthPanel` | 1.0 KB | `/login`, `/register` only |
+| `content` | 1.3 KB | Every route |
 | `home`, `root`, `login`, `register`, `manifest` | 2.7 KB total | Per route |
 
-About 95 KB of the total is React plus the React Router client runtime, which
+About 98 KB of the total is React plus the React Router client runtime, which
 arrives on any route. That is the floor for a hydrated React app and no amount of
 tuning inside this repo moves it much. What the budget actually protects is the
-gap between that floor and the ceiling: roughly 30 KB of headroom before a
+gap between that floor and the ceiling: about 22 KB of headroom before a
 dependency has to justify itself.
 
-The landing page needs none of the 10.9 KB `AuthPanel` chunk, because route-level
-code splitting is automatic in framework mode. Keeping it that way means not
-importing route components into each other.
+`AuthPanel` fell from 10.9 KB to 1.0 KB when the Google and Discord marks came out
+with [ADR 0008](adr/0008-demo-credentials.md). Two inline provider logos were an
+order of magnitude larger than the form that replaced them.
+
+The landing page loads none of that chunk anyway, because route-level code
+splitting is automatic in framework mode. Keeping it that way means not importing
+route components into each other.
 
 ## Fonts
 
