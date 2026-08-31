@@ -20,11 +20,39 @@
     "Segoe UI Symbol", "Noto Color Emoji";
 
   --radius-pill: 500px;
+
+  --ease-expand: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @layer base {
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
+  }
+
+  details::details-content {
+    block-size: 0;
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  details[open]::details-content {
+    block-size: auto;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    /* Without this, block-size cannot interpolate to auto and the expand snaps. */
+    interpolate-size: allow-keywords;
+  }
+
+  details::details-content {
+    transition:
+      block-size 600ms var(--ease-expand),
+      content-visibility 600ms var(--ease-expand),
+      opacity 350ms ease-out;
+    transition-behavior: allow-discrete;
   }
 }
