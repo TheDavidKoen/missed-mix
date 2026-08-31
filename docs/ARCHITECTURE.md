@@ -104,6 +104,14 @@ The last row is the direct answer to the flaw in the app this replaces, which ha
 an endpoint returning every user's full record, message text included, to any
 authenticated caller. Queries select the columns a screen needs and no more.
 
+Registration relies on a unique index over `usernameLower` rather than a
+check-then-insert, because two simultaneous signups both pass a prior lookup and
+only an index can reject the second. `scripts/init-db.mjs` creates that index, but
+the registration path asserts it too, once per isolate. That redundancy is
+deliberate: the index was found missing on 2026-08-31 and two accounts had already
+taken the same username. An invariant the code depends on should not live only in a
+script somebody remembered to run.
+
 ## Music data
 
 Spotify is reached with Client Credentials, an app-level token with no user
@@ -128,6 +136,7 @@ In place now:
 | Password hashing | PBKDF2-HMAC-SHA-256, per-user salt, digests compared in constant time |
 | Session cookie | Signed, `HttpOnly`, `SameSite=Lax`, `Secure` in production, 7 days |
 | Sign-in rate limit | 8 attempts per minute per IP and username, in-isolate |
+| Username uniqueness | Unique index on `usernameLower`, asserted by the code that depends on it |
 
 Deferred, with the stage that closes each:
 

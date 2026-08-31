@@ -99,9 +99,14 @@ email address is collected, nothing stored is real, and the auth pages tell ever
 visitor not to reuse a password. What would make it indefensible: this app
 becoming a real service without this line changing first.
 
-Two things keep the door open. The iteration count is stored inside each hash
-string rather than assumed, so raising it re-derives on next sign-in instead of
-invalidating every account, and `needsRehash` already exists for that. And moving
-to the paid plan lifts the ceiling to 5 minutes of CPU, which makes 600,000
-iterations trivial. It costs 5 USD per month, and that is the entire distance
-between this and a properly hashed credential store.
+One thing keeps the door open: the iteration count is stored inside each hash
+string rather than assumed, so raising it leaves every existing account still able
+to sign in, because verification reads the count from the hash it is checking.
+
+Re-hashing those accounts in place is **not** possible on this plan, and an earlier
+draft of this record wrongly implied it was. Verifying an old hash and deriving a
+new one in the same request costs both derivations, which exceeds 10 ms on its own.
+Migrating stored hashes therefore requires the paid plan, where the ceiling rises
+to 5 minutes of CPU and 600,000 iterations become trivial. It costs 5 USD per
+month, and that is the entire distance between this and a properly hashed
+credential store.

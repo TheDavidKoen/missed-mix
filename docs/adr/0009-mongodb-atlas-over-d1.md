@@ -55,6 +55,13 @@ Three of these are real losses and are the price of the decision.
 - **"No third-party requests" stops being true.** It still holds for the browser,
   which contacts nothing but this origin. The server now talks to Atlas on most
   requests. `docs/ARCHITECTURE.md` says so rather than keeping the old claim.
+- **Schema is not enforced by the platform.** SQLite would have rejected a
+  duplicate username through a table constraint declared in a migration. Here
+  uniqueness is an index, and an index can be absent without anything failing
+  loudly: on 2026-08-31 this collection was found without it and two accounts
+  shared a username. The registration path now asserts the index itself rather
+  than trusting a setup script, which is the shape this class of problem takes on
+  a schemaless store.
 
 The upside beyond the domain fit: the failure modes here are ones a reviewer can
 see being handled, which a binding to a managed SQLite would not have shown.

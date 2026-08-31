@@ -1,13 +1,12 @@
 import { data } from "react-router";
 import { z } from "zod";
 
-import { accounts, withDb } from "./mongo";
+import { accounts, ensureAccountIndexes, withDb } from "./mongo";
 import { hashPassword, verifyPassword } from "./password";
 import { clearAttempts, clientKey, tooManyAttempts } from "./rate-limit";
 import { startSession } from "./session";
 
-export const intentSchema = z.enum(["login", "register"]);
-export type AuthIntent = z.infer<typeof intentSchema>;
+export type AuthIntent = "login" | "register";
 
 /* Registration enforces the policy. Signing in deliberately does not: an account
    created before a rule changed must still be able to get in, and telling a
@@ -88,14 +87,16 @@ async function createAccount(
     /* The unique index on usernameLower is the guard, not a prior lookup. Two
        simultaneous registrations of the same name both pass a check-then-insert;
        only one survives a unique index. */
-    await withDb(env, (db) =>
-      accounts(db).insertOne({
+    await withDb(env, async (db) => {
+      await ensureAccountIndexes(db);
+
+      return accounts(db).insertOne({
         username: credentials.username,
         usernameLower: credentials.username.toLowerCase(),
         passwordHash,
         createdAt: new Date(),
-      }),
-    );
+      });
+    });
   } catch (error) {
     if (isDuplicateKey(error)) {
       return data(

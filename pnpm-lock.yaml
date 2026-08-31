@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  tr46@5.1.1: 03fc32afd31ccab89fee4d7603f590d535f901ba94e4ad62627ca5f1cfaf0f05
-
 importers:
 
   .:
@@ -20,9 +17,6 @@ importers:
       mongodb:
         specifier: ^7.6.0
         version: 7.6.0(socks@2.8.9)
-      punycode:
-        specifier: ^2.3.1
-        version: 2.3.1
       react:
         specifier: ^19.2.7
         version: 19.2.8
@@ -4775,7 +4769,7 @@ snapshots:
 
   tr46@0.0.3: {}
 
-  tr46@5.1.1(patch_hash=03fc32afd31ccab89fee4d7603f590d535f901ba94e4ad62627ca5f1cfaf0f05):
+  tr46@5.1.1:
     dependencies:
       punycode: 2.3.1
 
@@ -4851,7 +4845,7 @@ snapshots:
 
   whatwg-url@14.2.0:
     dependencies:
-      tr46: 5.1.1(patch_hash=03fc32afd31ccab89fee4d7603f590d535f901ba94e4ad62627ca5f1cfaf0f05)
+      tr46: 5.1.1
       webidl-conversions: 7.0.0
 
   whatwg-url@5.0.0:

@@ -29,3 +29,26 @@ export async function withDb<T>(env: Env, run: (db: Db) => Promise<T>): Promise<
 export function accounts(db: Db): Collection<Account> {
   return db.collection<Account>("accounts");
 }
+
+/* Registration depends on this index to reject a username that is already taken,
+   because a check-then-insert loses the race between two simultaneous signups.
+   `scripts/init-db.mjs` creates it as well, but an index created once by hand is
+   not a guarantee: this collection was found without it on 2026-08-31, after which
+   two accounts shared a username. Asserting it here makes the invariant belong to
+   the code that relies on it.
+
+   createIndex is idempotent, and the flag makes this one round trip per isolate
+   rather than per request. A module-scope boolean is safe to keep across requests;
+   a cached client or promise would not be, for the reason above. */
+let accountIndexesEnsured = false;
+
+export async function ensureAccountIndexes(db: Db) {
+  if (accountIndexesEnsured) return;
+
+  await accounts(db).createIndex(
+    { usernameLower: 1 },
+    { unique: true, name: "usernameLower_unique" },
+  );
+
+  accountIndexesEnsured = true;
+}

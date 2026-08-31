@@ -19,11 +19,11 @@ never sent anywhere.
 
 | Bucket | Budget | Measured |
 |---|---|---|
-| Client JavaScript | 125 KB | 102.6 KB |
+| Client JavaScript | 125 KB | 103.2 KB |
 | CSS | 8 KB | 4.0 KB |
 | Fonts | 35 KB | 29.7 KB |
 
-Measured 2026-08-31, at stage 1.
+Measured 2026-08-31, at stage 2.
 
 ## Where the JavaScript goes
 
@@ -34,13 +34,17 @@ Measured 2026-08-31, at stage 1.
 | `lib` | 3.9 KB | Every route |
 | `AuthPanel` | 1.0 KB | `/login`, `/register` only |
 | `content` | 1.3 KB | Every route |
-| `home`, `root`, `login`, `register`, `manifest` | 2.7 KB total | Per route |
+| `home`, `root`, `account`, `login`, `register`, `manifest` | 3.4 KB total | Per route |
 
 About 98 KB of the total is React plus the React Router client runtime, which
 arrives on any route. That is the floor for a hydrated React app and no amount of
 tuning inside this repo moves it much. What the budget actually protects is the
 gap between that floor and the ceiling: about 22 KB of headroom before a
 dependency has to justify itself.
+
+The mongodb driver adds nothing to these numbers. It is imported only from
+`app/lib/mongo.ts`, which no component reaches, so it stays in the server bundle:
+2.9 MB raw, 0.51 MB gzipped, against the 3 MB free-plan worker limit.
 
 `AuthPanel` fell from 10.9 KB to 1.0 KB when the Google and Discord marks came out
 with [ADR 0008](adr/0008-demo-credentials.md). Two inline provider logos were an

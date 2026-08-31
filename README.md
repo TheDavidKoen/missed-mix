@@ -217,11 +217,13 @@ clone that skips this fails at build time, not install time.
 **The Vite dev server cannot load the mongodb driver.** Any request to `/login`,
 `/register` or `/account` fails with `Calling require for "punycode/punycode.js"
 in an environment that doesn't expose the require function`. It comes from
-`tr46`, reached through `whatwg-url` and `mongodb-connection-string-url`. The
-production build resolves it at build time and is unaffected, so this is dev only.
-`patches/tr46@5.1.1.patch` rewrites the specifier and every resolution path points
-at the patched copy, but Vite still emits the old require. Unresolved. Until it is,
-verify auth against a Pages preview deployment rather than locally.
+`tr46`, reached through `whatwg-url` and `mongodb-connection-string-url`.
+
+The production build is unaffected: it resolves the specifier statically and emits
+no runtime `require` at all. A `pnpm patch` of `tr46`, a Vite alias and
+`ssr.noExternal` were each tried and none fixed dev, so all three were removed
+rather than left in place implying a fix that does not exist. Unresolved. Until it
+is, auth is verified by deploying.
 
 **`wrangler pages dev` does not inject `.dev.vars`.** It prints "Using secrets
 defined in .dev.vars" and lists them, then hands an advanced-mode `_worker.js` an

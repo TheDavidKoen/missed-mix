@@ -63,7 +63,3 @@ export async function verifyPassword(password: string, stored: string) {
   const derived = await derive(password, fromBase64(salt), count);
   return timingSafeEqual(derived, fromBase64(expected));
 }
-
-export function needsRehash(stored: string) {
-  return Number(stored.split("$")[1]) < ITERATIONS;
-}
