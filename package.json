@@ -7,13 +7,15 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "react-router build",
     "dev": "react-router dev",
-    "preview": "pnpm run build && vite preview",
+    "build": "react-router build",
+    "pages:build": "pnpm run build && node scripts/bundle-pages.mjs",
+    "preview": "pnpm run pages:build && wrangler pages dev build/client --compatibility-date=2026-08-25",
     "typecheck": "wrangler types && react-router typegen && tsc -b",
     "lint": "biome check .",
-    "format": "biome format --write .",
-    "verify": "pnpm run lint && pnpm run typecheck && pnpm run build",
+    "lint:fix": "biome check --write .",
+    "verify": "pnpm run typecheck && pnpm run lint",
+    "budget": "node scripts/check-budget.mjs",
     "cf-typegen": "wrangler types",
     "postinstall": "wrangler types"
   },
@@ -28,6 +30,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.10",
     "@cloudflare/vite-plugin": "^1.54.1",
+    "@lhci/cli": "^0.15.1",
     "@react-router/dev": "^8",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^22.20.1",
