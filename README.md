@@ -8,9 +8,10 @@ Built by **David Koen** as a portfolio piece. The repository is part of the
 deliverable: the branch history, pull requests and decision records are meant to
 be read alongside the running app.
 
-> **Status: in build.** Stage 2 of eleven. Registration and sign-in are implemented
-> against MongoDB Atlas, but see [Known issues](#known-issues): the Vite dev server
-> cannot currently load the driver, so the auth routes only run in a Pages build.
+> **Status: in build.** Stage 2 of eleven. Registration and sign-in work, live at
+> [missed-mix.pages.dev](https://missed-mix.pages.dev). The Vite dev server cannot
+> load the mongodb driver, so the auth routes run only in a Pages build for now.
+> See [Known issues](#known-issues).
 
 ## Stack
 
@@ -225,7 +226,19 @@ verify auth against a Pages preview deployment rather than locally.
 **`wrangler pages dev` does not inject `.dev.vars`.** It prints "Using secrets
 defined in .dev.vars" and lists them, then hands an advanced-mode `_worker.js` an
 env containing only `CF_PAGES*` and `ASSETS`. So the second local route to
-testing auth is closed too. Pages preview and production inject secrets normally.
+testing auth is closed too.
+
+Together those two mean **auth is verified by deploying, not locally**. A deployed
+Pages project injects secrets normally and has none of these problems.
+
+```sh
+pnpm run pages:build
+pnpm exec wrangler pages deploy build/client --project-name missed-mix --branch main
+```
+
+Secrets go up with `wrangler pages secret put <KEY> --project-name missed-mix`,
+which reads the value from stdin and writes to **production only**; Preview
+secrets have to be set in the dashboard.
 
 **Node's SRV lookup can fail on Windows.** `pnpm run init-db` dies with
 `querySrv ECONNREFUSED` when c-ares falls back to `127.0.0.1`. Set
