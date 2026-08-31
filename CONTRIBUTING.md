@@ -101,7 +101,7 @@ Good:
 Not worth writing:
 
 ```js
-/* Loop over the providers and render a button for each. */
+/* Render a label and an input for each field. */
 ```
 
 **Prose in rendered copy, comments and metadata uses no em dashes.** Markdown

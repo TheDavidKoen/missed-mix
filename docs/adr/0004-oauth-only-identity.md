@@ -1,6 +1,11 @@
 # 0004 — OAuth-only identity, no passwords
 
-**Status:** Accepted · 2026-08-28
+**Status:** Superseded by [0008](0008-demo-credentials.md) · 2026-08-28, superseded 2026-08-31
+
+> Superseded because Missed Mix is a demonstration rather than a service, and
+> asking a reviewer to authorise a real Google or Discord identity against a
+> throwaway project was the wrong trade. Everything below still holds for a real
+> service, and 0008 inherits the obligations it lists rather than dismissing them.
 
 ## Context
 

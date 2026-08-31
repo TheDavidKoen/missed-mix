@@ -17,11 +17,13 @@
     "verify": "pnpm run typecheck && pnpm run lint",
     "budget": "node scripts/check-budget.mjs",
     "cf-typegen": "wrangler types",
-    "postinstall": "wrangler types"
+    "postinstall": "wrangler types",
+    "init-db": "node scripts/init-db.mjs"
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.3.0",
     "isbot": "^5.1.36",
+    "mongodb": "^7.6.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router": "^8",

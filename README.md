@@ -8,9 +8,10 @@ Built by **David Koen** as a portfolio piece. The repository is part of the
 deliverable: the branch history, pull requests and decision records are meant to
 be read alongside the running app.
 
-> **Status: in build.** Stage 1 of eleven. The logged-out entry is live; the pages
-> at `/login` and `/register` return `501` until OAuth lands. See
-> [Build stages](#build-stages).
+> **Status: in build.** Stage 2 of eleven. Registration and sign-in work, live at
+> [missed-mix.pages.dev](https://missed-mix.pages.dev). The Vite dev server cannot
+> load the mongodb driver, so the auth routes run only in a Pages build for now.
+> See [Known issues](#known-issues).
 
 ## Stack
 
@@ -20,10 +21,10 @@ be read alongside the running app.
 | Language | TypeScript, `strict` |
 | Styling | Tailwind CSS v4 via `@tailwindcss/vite` |
 | Validation | Zod, one schema per boundary |
-| Database | Cloudflare D1 with Drizzle *(stage 2)* |
+| Database | MongoDB Atlas M0, official driver over TCP |
 | Object storage | Cloudflare R2 *(stage 4)* |
 | Realtime | Durable Objects, one per accepted pair *(stage 8)* |
-| Identity | Google and Discord OAuth, no passwords |
+| Identity | Username and password, no email, no third party |
 | Catalogue | Spotify Web API, Client Credentials only |
 | Lint + format | Biome |
 | Fonts | Figtree, self-hosted via Fontsource |
@@ -44,6 +45,9 @@ The dev server runs at **http://localhost:5173**.
 `pnpm dev` serves the app through Vite, which does **not** apply the security
 response headers. Those are set at the Pages edge entry. Use `pnpm preview` for
 anything that depends on them.
+
+**The auth routes do not work under `pnpm dev` today.** See
+[Known issues](#known-issues). The landing page does.
 
 ## Scripts
 
@@ -96,7 +100,7 @@ boundary.
 |---|---|---|
 | 0 | Scaffold, toolchain, CI, docs | Done |
 | 1 | Logged-out entry: landing, `/login`, `/register` | Done |
-| 2 | OAuth, sessions, `accounts` in D1 | Next |
+| 2 | Credentials, sessions, rate limiting, `accounts` in Atlas | In progress |
 | 3 | Onboarding and profiles |  |
 | 4 | Avatars on R2 |  |
 | 5 | Spotify catalogue and the taste picker |  |
@@ -108,15 +112,31 @@ boundary.
 
 ## Identity
 
-There is no password field anywhere in this app, and there never will be. Sign-in
-goes through Google or Discord, and the only identity data stored is a provider
-ID and an email address. A password database that does not exist cannot leak, and
-the whole category of hashing, reset flows and credential stuffing goes with it.
-See [ADR 0004](docs/adr/0004-oauth-only-identity.md).
+Registration takes a username and a password. That is the whole account: no email
+address, no OAuth, no third-party identity, nothing linking a profile here to a
+real account anywhere else.
 
-`/login` and `/register` are the same mechanism. With OAuth there is no separate
-registration step: the difference is the wording and where a first-time account
-lands afterwards. Both are offered because visitors look for both.
+This is a deliberate reversal. [ADR 0004](docs/adr/0004-oauth-only-identity.md)
+originally chose OAuth on the grounds that the safest credential store is the one
+you never build, which is correct for a real service. Missed Mix is not one, and
+asking somebody assessing a portfolio project to authorise it against their real
+Google account was the wrong trade. See
+[ADR 0008](docs/adr/0008-demo-credentials.md) for the reasoning and, more
+importantly, for the obligations that holding credentials creates.
+
+**Missed Mix is a demonstration. Do not enter a password you use anywhere else.**
+The auth pages say so too.
+
+Holding credentials means doing it properly, and the Workers runtime constrains
+how. bcrypt and Argon2 need WASM, so stage 2 uses PBKDF2-HMAC-SHA-256 through Web
+Crypto with a per-user salt, digest comparison rather than string comparison,
+failure messages that do not reveal whether a username exists, and rate limiting
+on the sign-in route. That last one moves forward from stage 9, because a password
+endpoint without a rate limit is precisely the flaw in the app this replaces.
+
+Password policy is enforced on registration only. Signing in checks that the
+fields are present and nothing else: telling a stranger which rules a stored
+password breaks is free reconnaissance.
 
 ## Music data
 
@@ -193,6 +213,38 @@ The token needs only **Account → Cloudflare Pages → Edit**.
 scripts by default and only warns. `esbuild` and `workerd` both need theirs to
 fetch platform binaries, so `pnpm-workspace.yaml` sets `allowBuilds` for both. A
 clone that skips this fails at build time, not install time.
+
+**The Vite dev server cannot load the mongodb driver.** Any request to `/login`,
+`/register` or `/account` fails with `Calling require for "punycode/punycode.js"
+in an environment that doesn't expose the require function`. It comes from
+`tr46`, reached through `whatwg-url` and `mongodb-connection-string-url`.
+
+The production build is unaffected: it resolves the specifier statically and emits
+no runtime `require` at all. A `pnpm patch` of `tr46`, a Vite alias and
+`ssr.noExternal` were each tried and none fixed dev, so all three were removed
+rather than left in place implying a fix that does not exist. Unresolved. Until it
+is, auth is verified by deploying.
+
+**`wrangler pages dev` does not inject `.dev.vars`.** It prints "Using secrets
+defined in .dev.vars" and lists them, then hands an advanced-mode `_worker.js` an
+env containing only `CF_PAGES*` and `ASSETS`. So the second local route to
+testing auth is closed too.
+
+Together those two mean **auth is verified by deploying, not locally**. A deployed
+Pages project injects secrets normally and has none of these problems.
+
+```sh
+pnpm run pages:build
+pnpm exec wrangler pages deploy build/client --project-name missed-mix --branch main
+```
+
+Secrets go up with `wrangler pages secret put <KEY> --project-name missed-mix`,
+which reads the value from stdin and writes to **production only**; Preview
+secrets have to be set in the dashboard.
+
+**Node's SRV lookup can fail on Windows.** `pnpm run init-db` dies with
+`querySrv ECONNREFUSED` when c-ares falls back to `127.0.0.1`. Set
+`DNS_SERVERS` in `.dev.vars`.
 
 **`pnpm create cloudflare` fails on Windows.** It shells out to `pnpm dlx`, which
 trips over a stale symlink in the pnpm store. Use `npm create cloudflare` and swap

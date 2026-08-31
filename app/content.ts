@@ -33,6 +33,7 @@ export const AUTH = {
   login: {
     title: "Log in",
     heading: "Log in to Missed Mix",
+    submit: "Log in",
     prompt: "Not on Missed Mix yet?",
     switchLabel: "Sign up",
     switchTo: "/register",
@@ -40,14 +41,16 @@ export const AUTH = {
   register: {
     title: "Sign up",
     heading: "Sign up for Missed Mix",
+    submit: "Create account",
     prompt: "Already have an account?",
     switchLabel: "Log in",
     switchTo: "/login",
   },
-  disclosure:
-    "Missed Mix never sees a password. You sign in with Google or Discord, and we store only your provider ID, your email address, and the profile you choose to fill in.",
-  providers: {
-    google: "Continue with Google",
-    discord: "Continue with Discord",
+  fields: {
+    username: "Username",
+    password: "Password",
   },
+  passwordHint: "At least 10 characters.",
+  demoNotice:
+    "Missed Mix is a portfolio demonstration, not a real service. Accounts here are throwaway and everything in them is disposable. Never reuse a password you use anywhere else.",
 } as const;
