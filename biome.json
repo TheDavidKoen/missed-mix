@@ -6,12 +6,8 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignoreUnknown": true
-  },
-  "css": {
-    "parser": {
-      "tailwindDirectives": true
-    }
+    "ignoreUnknown": true,
+    "includes": ["**", "!public"]
   },
   "formatter": {
     "enabled": true,
@@ -28,6 +24,11 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "double"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "assist": {
