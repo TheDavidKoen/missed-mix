@@ -48,3 +48,7 @@ more honest signal.
   a real loss of signal, and accepted.
 - Any future feature that assumes real listening data is incompatible with this
   decision and needs to reopen it, not work around it.
+- **Attribution was removed from the profile page on 2026-09-01** at David's
+  request. Spotify's developer terms ask for it wherever their content appears,
+  so this is a known deviation on a demonstration rather than an oversight. It
+  returns if the app ever becomes more than that.

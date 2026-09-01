@@ -54,3 +54,27 @@ export const AUTH = {
   demoNotice:
     "Missed Mix is a portfolio demonstration, not a real service. Accounts here are throwaway and everything in them is disposable. Never reuse a password you use anywhere else.",
 } as const;
+
+export const PROFILE = {
+  heading: "Build your profile",
+  firstName: "First name",
+  description: "A quote that resonates with you",
+  descriptionHint: "200 characters.",
+  avatar: "Profile picture",
+  avatarHint: "JPEG, PNG or WebP, up to 2 MB.",
+  save: "Save profile",
+  saved: "Profile saved.",
+  featuredHeading: "Your two highlights",
+  promptsHeading: "Four artists",
+} as const;
+
+export const PROMPTS = [
+  { key: "childhood", kind: "artist", label: "An artist that reminds you of your childhood" },
+  { key: "excited", kind: "artist", label: "An artist you listen to to get excited" },
+  { key: "cloudy", kind: "artist", label: "An artist that helps you on your cloudy days" },
+  { key: "work", kind: "artist", label: "An artist that gets you through work" },
+  { key: "topAlbum", kind: "album", label: "A top 5 album of yours" },
+  { key: "currentSong", kind: "track", label: "Most listened to song right now" },
+] as const;
+
+export type PickKey = (typeof PROMPTS)[number]["key"];

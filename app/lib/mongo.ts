@@ -1,5 +1,8 @@
 import type { Collection, Db } from "mongodb";
 
+import type { PickKey } from "~/content";
+import type { MusicPick } from "./spotify";
+
 export type Account = {
   username: string;
   usernameLower: string;
@@ -58,4 +61,31 @@ export async function ensureAccountIndexes(db: Db) {
   );
 
   accountIndexesEnsured = true;
+}
+
+export type Profile = {
+  avatarUpdatedAt: Date | null;
+  usernameLower: string;
+  firstName: string;
+  description: string;
+  picks: Record<PickKey, MusicPick | null>;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export function profiles(db: Db): Collection<Profile> {
+  return db.collection<Profile>("profiles");
+}
+
+let profileIndexesEnsured = false;
+
+export async function ensureProfileIndexes(db: Db) {
+  if (profileIndexesEnsured) return;
+
+  await profiles(db).createIndex(
+    { usernameLower: 1 },
+    { unique: true, name: "profile_usernameLower_unique" },
+  );
+
+  profileIndexesEnsured = true;
 }

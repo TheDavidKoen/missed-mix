@@ -137,13 +137,16 @@ In place now:
 | Session cookie | Signed, `HttpOnly`, `SameSite=Lax`, `Secure` in production, 7 days |
 | Sign-in rate limit | 8 attempts per minute per IP and username, in-isolate |
 | Username uniqueness | Unique index on `usernameLower`, asserted by the code that depends on it |
+| Avatar uploads | Sniffed by magic number, never the declared type, capped at 2 MB |
+| Avatar access | Session required; the R2 bucket is never public |
+| Third-party image URLs | Restricted to Spotify's CDN on save, so a profile cannot embed an arbitrary tracker |
+| Search endpoint | Requires a session, so it is not an open proxy to our Spotify quota |
 
 Deferred, with the stage that closes each:
 
 | Gap | Stage |
 |---|---|
 | CSRF tokens | 2, still open |
-| Upload size limits and content sniffing | 4 |
 | Rate limiting | 7 for vibrations, 9 globally |
 | Content Security Policy | 9 |
 | Data export and account deletion | 9 |

@@ -22,7 +22,7 @@ be read alongside the running app.
 | Styling | Tailwind CSS v4 via `@tailwindcss/vite` |
 | Validation | Zod, one schema per boundary |
 | Database | MongoDB Atlas M0, official driver over TCP |
-| Object storage | Cloudflare R2 *(stage 4)* |
+| Object storage | Cloudflare R2, avatars only |
 | Realtime | Durable Objects, one per accepted pair *(stage 8)* |
 | Identity | Username and password, no email, no third party |
 | Catalogue | Spotify Web API, Client Credentials only |
@@ -81,7 +81,22 @@ response headers and asset serving as they ship.
 ```text
 app/
 ├── components/     UI components, one concern each
-├── lib/            Boundary logic: schemas, validation, auth
+│   ├── AuthPanel   Sign-in and registration form
+│   ├── Field       One labelled control, shared by every form
+│   ├── MusicPicker Spotify search and selection
+│   ├── Pill        Buttons and links
+│   └── Wordmark    The product name
+├── lib/            Boundary logic. No JSX
+│   ├── auth        Credential schemas, registration, sign-in
+│   ├── avatar      Upload validation and R2 access
+│   ├── context     Carries env from the worker into loaders
+│   ├── form        Zod errors to field errors
+│   ├── mongo       Client, collections, index assertions
+│   ├── password    PBKDF2 hashing and verification
+│   ├── profile     Profile schema and store
+│   ├── rate-limit  In-isolate request budgets
+│   ├── session     Signed cookie sessions
+│   └── spotify     Client Credentials token and search
 ├── routes/         Route modules, one file per URL
 ├── content.ts      All user-facing copy
 ├── app.css         Design tokens in @theme
@@ -114,9 +129,9 @@ boundary.
 | 0 | Scaffold, toolchain, CI, docs | Done |
 | 1 | Logged-out entry: landing, `/login`, `/register` | Done |
 | 2 | Credentials, sessions, rate limiting, `accounts` in Atlas | Done |
-| 3 | Onboarding and profiles |  |
-| 4 | Avatars on R2 |  |
-| 5 | Spotify catalogue and the taste picker |  |
+| 3 | Onboarding and profiles | Done |
+| 4 | Avatars on R2 | Done |
+| 5 | Spotify catalogue and the taste picker | Done |
 | 6 | Similarity scoring and discovery |  |
 | 7 | Vibrations: send, accept, decline |  |
 | 8 | Conversations on Durable Objects |  |
@@ -165,7 +180,9 @@ similarity is computed over those picks. See
 
 Missed Mix is not affiliated with Spotify. It borrows the visual language of a
 dark music app, and none of Spotify's marks: no logo, no wordmark, no Circular.
-Attribution for catalogue data appears wherever that data is shown, from stage 5.
+The profile page carries no Spotify attribution, which is a known deviation from
+their developer terms and is recorded in
+[ADR 0006](docs/adr/0006-declared-taste-over-listening-history.md).
 
 ## Contributing
 

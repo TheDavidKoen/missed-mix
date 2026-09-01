@@ -3,12 +3,15 @@
    generated Env would be missing every one of these. */
 
 interface MissedMixSecrets {
-  /* Atlas connection string. Set in .dev.vars locally, and as a Pages secret on
-     both Production and Preview, which do not share values. */
   MONGODB_URI: string;
   MONGODB_DB: string;
-  /* Signs the session cookie. Rotating it invalidates every active session. */
+
   SESSION_SECRET: string;
+
+  SPOTIFY_CLIENT_ID: string;
+  SPOTIFY_CLIENT_SECRET: string;
+
+  AVATARS: R2Bucket;
 }
 
 declare namespace Cloudflare {
