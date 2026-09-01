@@ -52,3 +52,26 @@ more honest signal.
   request. Spotify's developer terms ask for it wherever their content appears,
   so this is a known deviation on a demonstration rather than an oversight. It
   returns if the app ever becomes more than that.
+
+## Amendment, 2026-09-01: Spotify no longer returns genres
+
+The record above assumes similarity can be computed over "the genre vectors those
+picks imply". Under Client Credentials that is no longer possible. Measured against
+this project's own app:
+
+| Endpoint | Result |
+|---|---|
+| `GET /v1/artists/{id}` | 200, but the object has no `genres`, `popularity` or `followers` |
+| `GET /v1/artists?ids=` | 403 |
+| `GET /v1/artists/{id}/related-artists` | 403 |
+| `GET /v1/recommendations` | 404, removed |
+| `GET /v1/albums/{id}` | 200, no `genres` |
+
+What remains is search returning an id, a name and artwork. Spotify is a catalogue
+and an image source for this project now, and nothing more.
+
+The decision in this record stands: taste is still declared rather than imported,
+and Client Credentials still sidesteps the user cap. What changes is that the
+similarity signal has to come from somewhere else. Exact Spotify ID overlap is the
+only thing available without adding a service, and across six picks and a small
+population that will be zero almost every time.

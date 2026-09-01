@@ -1,30 +1,22 @@
 import { useEffect, useRef } from "react";
-import { Form, redirect } from "react-router";
+import { Form, redirect, useRouteLoaderData } from "react-router";
 
 import { AvatarField } from "~/components/AvatarField";
 import { Field } from "~/components/Field";
 import { MusicPicker } from "~/components/MusicPicker";
 import { PillButton } from "~/components/Pill";
-import { Wordmark } from "~/components/Wordmark";
 import type { PickKey } from "~/content";
 import { PROFILE, PROMPTS, SITE } from "~/content";
 import { storeAvatar } from "~/lib/avatar";
 import { cloudflareContext } from "~/lib/context";
 import { fieldErrorsFrom } from "~/lib/form";
-import { parsePicks, profileSchema, readProfile, saveProfile } from "~/lib/profile";
-import { currentUsername, endSession } from "~/lib/session";
+import { parsePicks, profileSchema, saveProfile } from "~/lib/profile";
+import { currentUsername } from "~/lib/session";
 import type { Route } from "./+types/profile";
+import type { loader as signedInLoader } from "./signed-in";
 
 export function meta() {
   return [{ title: `Profile | ${SITE.name}` }, { name: "robots", content: "noindex" }];
-}
-
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const { env } = context.get(cloudflareContext);
-  const username = await currentUsername(request, env);
-  if (!username) throw redirect("/login");
-
-  return { username, profile: await readProfile(env, username.toLowerCase()) };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -33,7 +25,6 @@ export async function action({ request, context }: Route.ActionArgs) {
   if (!username) throw redirect("/login");
 
   const form = await request.formData();
-  if (form.get("logout") === "true") throw await endSession(request, env, "/");
 
   const avatar = form.get("avatar");
   let avatarError: string | null = null;
@@ -61,8 +52,11 @@ export async function action({ request, context }: Route.ActionArgs) {
   return { fieldErrors: fieldErrorsFrom(null), avatarError, saved: true };
 }
 
-export default function Profile({ loaderData, actionData }: Route.ComponentProps) {
-  const { username, profile } = loaderData;
+export default function Profile({ actionData }: Route.ComponentProps) {
+  const parent = useRouteLoaderData<typeof signedInLoader>("routes/signed-in");
+  const username = parent?.username ?? "";
+  const profile = parent?.profile ?? null;
+
   const errors = actionData?.fieldErrors ?? {};
   const pickOf = (key: PickKey) => profile?.picks?.[key] ?? null;
 
@@ -84,18 +78,8 @@ export default function Profile({ loaderData, actionData }: Route.ComponentProps
     : null;
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-6 py-12">
-      <header className="flex items-center justify-between">
-        <Wordmark className="text-xl" />
-        <Form method="post">
-          <input type="hidden" name="logout" value="true" />
-          <PillButton type="submit" variant="secondary" className="px-6 py-2 text-sm">
-            Log out
-          </PillButton>
-        </Form>
-      </header>
-
-      <h1 className="mt-10 text-4xl font-black tracking-tight">{PROFILE.heading}</h1>
+    <main className="mx-auto flex w-full max-w-3xl flex-col px-6 pb-16">
+      <h1 className="text-4xl font-black tracking-tight">{PROFILE.heading}</h1>
 
       {actionData?.saved ? (
         <p
@@ -185,6 +169,6 @@ export default function Profile({ loaderData, actionData }: Route.ComponentProps
           {PROFILE.save}
         </PillButton>
       </Form>
-    </div>
+    </main>
   );
 }

@@ -113,3 +113,29 @@ export async function ensureAvatarIndexes(db: Db) {
 
   avatarIndexesEnsured = true;
 }
+
+export type Vibration = {
+  fromUsernameLower: string;
+  toUsernameLower: string;
+  song: MusicPick;
+  status: "pending" | "accepted" | "declined";
+  createdAt: Date;
+  respondedAt: Date | null;
+};
+
+export function vibrations(db: Db): Collection<Vibration> {
+  return db.collection<Vibration>("vibrations");
+}
+
+let vibrationIndexesEnsured = false;
+
+export async function ensureVibrationIndexes(db: Db) {
+  if (vibrationIndexesEnsured) return;
+
+  await vibrations(db).createIndex(
+    { fromUsernameLower: 1, toUsernameLower: 1 },
+    { unique: true, name: "vibration_pair_unique" },
+  );
+
+  vibrationIndexesEnsured = true;
+}

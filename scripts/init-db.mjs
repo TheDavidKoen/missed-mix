@@ -54,8 +54,15 @@ try {
     .collection("avatars")
     .createIndex({ usernameLower: 1 }, { unique: true, name: "avatar_usernameLower_unique" });
 
+  const vibrationIndex = await db
+    .collection("vibrations")
+    .createIndex(
+      { fromUsernameLower: 1, toUsernameLower: 1 },
+      { unique: true, name: "vibration_pair_unique" },
+    );
+
   console.log(`Connected to ${vars.MONGODB_DB}`);
-  console.log(`Indexes ready: ${name}, ${profileIndex}, ${avatarIndex}`);
+  console.log(`Indexes ready: ${name}, ${profileIndex}, ${avatarIndex}, ${vibrationIndex}`);
   console.log(`Accounts: ${await db.collection("accounts").countDocuments()}`);
 } catch (error) {
   if (error.code === "ECONNREFUSED" && error.syscall === "querySrv") {

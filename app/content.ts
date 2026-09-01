@@ -15,10 +15,10 @@ export const LANDING = {
         "You pick the artists and tracks yourself, so matching runs on what you chose rather than on whatever could be scraped from your listening history. Share as much or as little else as you want to.",
     },
     {
-      title: "Find your overlap",
-      body: "Missed Mix scores every profile against your taste and ranks the closest.",
+      title: "See who else is here",
+      body: "Everyone else on Missed Mix, and the six things they picked.",
       detail:
-        "Scoring runs on shared artists and the genres behind them, so two people who never picked the same act can still land near each other. You see what you have in common before deciding whether to reach out.",
+        "You see the six answers everyone else gave, side by side with your own. Read what somebody listens to and decide for yourself whether you want to reach out, rather than trusting a number that claims to know.",
     },
     {
       title: "Send a vibration",
@@ -78,3 +78,30 @@ export const PROMPTS = [
 ] as const;
 
 export type PickKey = (typeof PROMPTS)[number]["key"];
+
+export const MIXERS = {
+  heading: "Mixers",
+  standfirst: "Everyone else on Missed Mix. Open a profile to see all six answers.",
+  empty: "Nobody else has built a profile yet.",
+  nowPlaying: "Listening to",
+  noSong: "No song picked yet",
+} as const;
+
+export const VIBRATION = {
+  send: "Send a vibration",
+  prompt: "Send them a song",
+  hint: "A vibration is a nudge with a song attached. They see it before deciding whether to reply.",
+  submit: "Send it",
+  sent: "Vibration sent.",
+  already: "You have already sent this person a vibration.",
+  needSong: "Pick a song first.",
+  heading: "Vibrations",
+  standfirst: "Nudges people have sent you, each with a song attached.",
+  empty: "Nothing yet. Send one from Mixers and see who sends back.",
+} as const;
+
+export const NAV = [
+  { to: "/profile", label: "My Profile" },
+  { to: "/mixers", label: "Mixers" },
+  { to: "/vibrations", label: "Vibrations" },
+] as const;

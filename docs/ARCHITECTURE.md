@@ -105,6 +105,11 @@ The last row is the direct answer to the flaw in the app this replaces, which ha
 an endpoint returning every user's full record, message text included, to any
 authenticated caller. Queries select the columns a screen needs and no more.
 
+A vibration is one document per sender and recipient pair, carrying the song and a
+status. The unique index on that pair is what stops a second one being sent, rather
+than a prior lookup, for the same reason registration relies on an index: two rapid
+submits both pass a check-then-insert.
+
 Registration relies on a unique index over `usernameLower` rather than a
 check-then-insert, because two simultaneous signups both pass a prior lookup and
 only an index can reject the second. `scripts/init-db.mjs` creates that index, but
@@ -132,9 +137,12 @@ read the parent's data through `useRouteLoaderData` instead.
 
 Spotify is reached with Client Credentials, an app-level token with no user
 context ([ADR 0006](adr/0006-declared-taste-over-listening-history.md)). The app
-holds no Spotify user tokens and can read nobody's listening history. Similarity
-is computed over artists and tracks a person picked deliberately, and the genre
-vectors those picks imply.
+holds no Spotify user tokens and can read nobody's listening history.
+
+Spotify supplies identity and artwork only. It no longer returns genres to Client
+Credentials apps ([ADR 0011](adr/0011-musicbrainz-for-genres.md) records exactly
+what was withdrawn). Nothing in the app consumes genres now, because Mixers lists
+profiles rather than ranking them ([ADR 0012](adr/0012-mixers-lists-everyone.md)).
 
 ## Security posture
 
@@ -153,6 +161,8 @@ In place now:
 | Session cookie | Signed, `HttpOnly`, `SameSite=Lax`, `Secure` in production, 7 days |
 | Sign-in rate limit | 8 attempts per minute per IP and username, in-isolate |
 | Username uniqueness | Unique index on `usernameLower`, asserted by the code that depends on it |
+| One vibration per pair | Unique index on sender and recipient, asserted in the send path |
+| Vibration song | Parsed by the same schema as a profile pick, so the image host allowlist applies |
 | Avatar uploads | Sniffed by magic number, never the declared type, capped at 2 MB |
 | Avatar access | Session required; avatars live in the database, never on public storage |
 | Third-party image URLs | Restricted to Spotify's CDN on save, so a profile cannot embed an arbitrary tracker |
