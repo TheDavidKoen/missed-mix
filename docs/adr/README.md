@@ -15,6 +15,8 @@ what was decided, and what it costs.
 | [0008](0008-demo-credentials.md) | Username and password credentials for the demo | Accepted |
 | [0009](0009-mongodb-atlas-over-d1.md) | MongoDB Atlas over Cloudflare D1 | Accepted |
 | [0010](0010-avatars-in-mongodb-not-r2.md) | Avatars in MongoDB rather than R2 | Accepted |
+| [0011](0011-musicbrainz-for-genres.md) | MusicBrainz for genres, after Spotify stopped supplying them | Superseded by 0012 |
+| [0012](0012-mixers-lists-everyone.md) | Mixers lists everyone, and ranks nobody | Accepted |
 
 Superseded records stay in place with their status changed, rather than being
 deleted. 0004 is worth reading alongside 0008: the argument it makes is sound for

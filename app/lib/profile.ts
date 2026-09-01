@@ -76,3 +76,22 @@ export function parsePicks(form: FormData) {
 
   return picks;
 }
+
+export async function listOtherProfiles(env: Env, usernameLower: string) {
+  return withDb(env, (db) =>
+    profiles(db)
+      .find(
+        { usernameLower: { $ne: usernameLower } },
+        {
+          projection: { _id: 0 },
+          sort: { updatedAt: -1 },
+          limit: 60,
+        },
+      )
+      .toArray(),
+  );
+}
+
+export async function readPublicProfile(env: Env, usernameLower: string) {
+  return withDb(env, (db) => profiles(db).findOne({ usernameLower }, { projection: { _id: 0 } }));
+}

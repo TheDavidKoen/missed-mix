@@ -89,6 +89,7 @@ response headers and asset serving as they ship.
 | `pnpm run lint:fix` | Apply Biome's safe fixes |
 | `pnpm verify` | `typecheck` then `lint` — run before opening a PR |
 | `pnpm run budget` | Assert the performance budget and the edge guards |
+| `pnpm run init-db` | Create the indexes every collection relies on |
 
 ## Project structure
 
@@ -146,8 +147,8 @@ boundary.
 | 3 | Onboarding and profiles | Done |
 | 4 | Avatars | Done |
 | 5 | Spotify catalogue and the taste picker | Done |
-| 6 | Mixers: similarity scoring and discovery |  |
-| 7 | Vibrations: send with a song, accept, decline |  |
+| 6 | Mixers: every other profile and their picks | Done |
+| 7 | Vibrations: send with a song | Sending done, accept and decline next |
 | 8 | Conversations, opened by an accepted vibration |  |
 | 9 | Hardening: rate limits, CSP, export and delete |  |
 | 10 | Docs, seed data, launch |  |
@@ -188,9 +189,13 @@ the app to a handful of allowlisted testers, and it means Missed Mix never holds
 Spotify user token.
 
 The cost is that the app cannot read anyone's listening history. Taste is
-**declared**: you search the catalogue and pick your own artists and tracks, and
-similarity is computed over those picks. See
+**declared**: you search the catalogue and pick your own artists and tracks. See
 [ADR 0006](docs/adr/0006-declared-taste-over-listening-history.md).
+
+Mixers shows those picks rather than scoring them. Spotify withdrew genres from
+Client Credentials apps, and a similarity score across four profiles would have
+claimed a confidence the data cannot support. See
+[ADR 0012](docs/adr/0012-mixers-lists-everyone.md).
 
 Missed Mix is not affiliated with Spotify. It borrows the visual language of a
 dark music app, and none of Spotify's marks: no logo, no wordmark, no Circular.
