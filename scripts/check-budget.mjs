@@ -82,6 +82,9 @@ if (existsSync(join(CLIENT, ".vite"))) {
 if (existsSync(join(WORKER, "server", "wrangler.json"))) {
   failures.push("Workers deploy pointer left in the bundle, wrangler pages will follow it");
 }
+if (existsSync(join(WORKER, "server", ".dev.vars"))) {
+  failures.push(".dev.vars is inside the deployable bundle, every secret with it");
+}
 
 report.push(`edge guards ${failures.length ? "BROKEN" : "intact"}`);
 console.log(report.map((line) => `  ${line}`).join("\n"));

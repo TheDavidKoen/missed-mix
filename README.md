@@ -22,7 +22,7 @@ be read alongside the running app.
 | Styling | Tailwind CSS v4 via `@tailwindcss/vite` |
 | Validation | Zod, one schema per boundary |
 | Database | MongoDB Atlas M0, official driver over TCP |
-| Object storage | Cloudflare R2, avatars only |
+| Object storage | None. Avatars live in MongoDB ([ADR 0010](docs/adr/0010-avatars-in-mongodb-not-r2.md)) |
 | Realtime | Durable Objects, one per accepted pair *(stage 8)* |
 | Identity | Username and password, no email, no third party |
 | Catalogue | Spotify Web API, Client Credentials only |
@@ -37,10 +37,24 @@ why each was chosen.
 
 ```sh
 pnpm install
-pnpm dev
+cp .dev.vars.example .dev.vars
 ```
 
-The dev server runs at **http://localhost:5173**.
+Fill in `.dev.vars`: an Atlas connection string, a database name, a session secret
+from `openssl rand -base64 32`, and a Spotify client ID and secret. Then create the
+indexes and start the app:
+
+```sh
+pnpm run init-db
+pnpm preview
+```
+
+The app runs at **http://localhost:8788** with the database, avatars and Spotify
+search all working.
+
+`pnpm dev` at **http://localhost:5173** is faster and has hot reload, but it cannot
+reach the database, so you cannot sign in there. Use it for layout, styling and
+copy. See [Two dev servers](#two-dev-servers).
 
 ## Two dev servers
 
@@ -88,7 +102,7 @@ app/
 │   └── Wordmark    The product name
 ├── lib/            Boundary logic. No JSX
 │   ├── auth        Credential schemas, registration, sign-in
-│   ├── avatar      Upload validation and R2 access
+│   ├── avatar      Upload validation and storage
 │   ├── context     Carries env from the worker into loaders
 │   ├── form        Zod errors to field errors
 │   ├── mongo       Client, collections, index assertions
@@ -130,7 +144,7 @@ boundary.
 | 1 | Logged-out entry: landing, `/login`, `/register` | Done |
 | 2 | Credentials, sessions, rate limiting, `accounts` in Atlas | Done |
 | 3 | Onboarding and profiles | Done |
-| 4 | Avatars on R2 | Done |
+| 4 | Avatars | Done |
 | 5 | Spotify catalogue and the taste picker | Done |
 | 6 | Similarity scoring and discovery |  |
 | 7 | Vibrations: send, accept, decline |  |

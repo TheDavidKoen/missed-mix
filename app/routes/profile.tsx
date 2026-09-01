@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react";
 import { Form, redirect } from "react-router";
 
+import { AvatarField } from "~/components/AvatarField";
 import { Field } from "~/components/Field";
 import { MusicPicker } from "~/components/MusicPicker";
 import { PillButton } from "~/components/Pill";
@@ -64,6 +66,17 @@ export default function Profile({ loaderData, actionData }: Route.ComponentProps
   const errors = actionData?.fieldErrors ?? {};
   const pickOf = (key: PickKey) => profile?.picks?.[key] ?? null;
 
+  const savedRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (!actionData?.saved) return;
+
+    savedRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "center",
+    });
+  }, [actionData]);
+
   const featured = PROMPTS.filter((prompt) => prompt.kind !== "artist");
   const artists = PROMPTS.filter((prompt) => prompt.kind === "artist");
   const avatarSrc = profile?.avatarUpdatedAt
@@ -86,6 +99,7 @@ export default function Profile({ loaderData, actionData }: Route.ComponentProps
 
       {actionData?.saved ? (
         <p
+          ref={savedRef}
           role="status"
           className="mt-6 rounded-xl bg-accent px-4 py-3 text-sm font-bold text-on-accent"
         >
@@ -109,35 +123,12 @@ export default function Profile({ loaderData, actionData }: Route.ComponentProps
             <p className="text-2xl font-black tracking-tight">{username}</p>
           </div>
 
-          <div className="flex items-center gap-5">
-            {avatarSrc ? (
-              <img src={avatarSrc} alt="" className="size-24 shrink-0 rounded-full object-cover" />
-            ) : (
-              <span className="size-24 shrink-0 rounded-full bg-raised" />
-            )}
-            <div className="flex flex-col gap-2">
-              <label htmlFor="avatar" className="text-sm font-bold tracking-tight">
-                {PROFILE.avatar}
-              </label>
-              <input
-                id="avatar"
-                name="avatar"
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                aria-describedby={actionData?.avatarError ? "avatar-error" : "avatar-hint"}
-                className="text-sm text-muted file:mr-4 file:rounded-pill file:border-0 file:bg-accent file:px-5 file:py-2 file:font-bold file:text-on-accent"
-              />
-              {actionData?.avatarError ? (
-                <p id="avatar-error" className="text-sm text-danger">
-                  {actionData.avatarError}
-                </p>
-              ) : (
-                <p id="avatar-hint" className="text-xs text-muted">
-                  {PROFILE.avatarHint}
-                </p>
-              )}
-            </div>
-          </div>
+          <AvatarField
+            label={PROFILE.avatar}
+            hint={PROFILE.avatarHint}
+            error={actionData?.avatarError}
+            saved={avatarSrc}
+          />
 
           <Field
             name="firstName"

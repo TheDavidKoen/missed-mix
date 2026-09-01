@@ -10,14 +10,16 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
     throw new Response("Unauthorized", { status: 401 });
   }
 
-  const object = await readAvatar(env, params.username.toLowerCase());
-  if (!object) throw new Response("Not found", { status: 404 });
+  const avatar = await readAvatar(env, params.username.toLowerCase());
+  if (!avatar) throw new Response("Not found", { status: 404 });
 
-  return new Response(object.body, {
+  /* The caller always carries ?v=<updatedAt>, so a given URL can never return
+     different bytes and a year is safe. Without that the immutable hint would
+     pin a stale picture until the cache expired. */
+  return new Response(avatar.bytes, {
     headers: {
-      "Content-Type": object.httpMetadata?.contentType ?? "application/octet-stream",
-      "Cache-Control": "private, max-age=60, must-revalidate",
-      ETag: object.httpEtag,
+      "Content-Type": avatar.contentType,
+      "Cache-Control": "private, max-age=31536000, immutable",
     },
   });
 }

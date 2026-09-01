@@ -1,4 +1,4 @@
-import type { Collection, Db } from "mongodb";
+import type { Binary, Collection, Db } from "mongodb";
 
 import type { PickKey } from "~/content";
 import type { MusicPick } from "./spotify";
@@ -88,4 +88,28 @@ export async function ensureProfileIndexes(db: Db) {
   );
 
   profileIndexesEnsured = true;
+}
+
+export type Avatar = {
+  usernameLower: string;
+  data: Binary;
+  contentType: string;
+  updatedAt: Date;
+};
+
+export function avatars(db: Db): Collection<Avatar> {
+  return db.collection<Avatar>("avatars");
+}
+
+let avatarIndexesEnsured = false;
+
+export async function ensureAvatarIndexes(db: Db) {
+  if (avatarIndexesEnsured) return;
+
+  await avatars(db).createIndex(
+    { usernameLower: 1 },
+    { unique: true, name: "avatar_usernameLower_unique" },
+  );
+
+  avatarIndexesEnsured = true;
 }
