@@ -146,9 +146,9 @@ boundary.
 | 3 | Onboarding and profiles | Done |
 | 4 | Avatars | Done |
 | 5 | Spotify catalogue and the taste picker | Done |
-| 6 | Similarity scoring and discovery |  |
-| 7 | Vibrations: send, accept, decline |  |
-| 8 | Conversations on Durable Objects |  |
+| 6 | Mixers: similarity scoring and discovery |  |
+| 7 | Vibrations: send with a song, accept, decline |  |
+| 8 | Conversations, opened by an accepted vibration |  |
 | 9 | Hardening: rate limits, CSP, export and delete |  |
 | 10 | Docs, seed data, launch |  |
 
