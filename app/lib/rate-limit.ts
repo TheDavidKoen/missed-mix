@@ -4,16 +4,18 @@
    replaces actually suffered, which was unlimited sequential guessing against
    one endpoint. A durable limiter arrives with the stage 9 hardening pass. */
 const WINDOW_MS = 60_000;
-const MAX_ATTEMPTS = 8;
+
+export const SIGN_IN_ATTEMPTS = 8;
+export const SEARCH_REQUESTS = 40;
 
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
-export function clientKey(request: Request, username: string) {
+export function limitKey(request: Request, scope: string) {
   const ip = request.headers.get("CF-Connecting-IP") ?? "local";
-  return `${ip}:${username.toLowerCase()}`;
+  return `${scope}:${ip}`;
 }
 
-export function tooManyAttempts(key: string) {
+export function tooManyAttempts(key: string, max: number) {
   const now = Date.now();
   const entry = attempts.get(key);
 
@@ -23,7 +25,7 @@ export function tooManyAttempts(key: string) {
   }
 
   entry.count += 1;
-  return entry.count > MAX_ATTEMPTS;
+  return entry.count > max;
 }
 
 export function clearAttempts(key: string) {

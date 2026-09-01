@@ -16,3 +16,7 @@ SESSION_SECRET="replace-me"
 # listening. Set this to your router or any working resolver if pnpm run init-db
 # fails with querySrv ECONNREFUSED.
 # DNS_SERVERS="10.20.0.1"
+
+
+SPOTIFY_CLIENT_ID=""
+SPOTIFY_CLIENT_SECRET=""

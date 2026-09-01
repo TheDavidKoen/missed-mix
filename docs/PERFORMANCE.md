@@ -19,11 +19,11 @@ never sent anywhere.
 
 | Bucket | Budget | Measured |
 |---|---|---|
-| Client JavaScript | 125 KB | 103.2 KB |
-| CSS | 8 KB | 4.0 KB |
+| Client JavaScript | 125 KB | 105.6 KB |
+| CSS | 8 KB | 4.3 KB |
 | Fonts | 35 KB | 29.7 KB |
 
-Measured 2026-08-31, at stage 2.
+Measured 2026-09-01, at stage 5.
 
 ## Where the JavaScript goes
 
@@ -31,26 +31,33 @@ Measured 2026-08-31, at stage 2.
 |---|---|---|
 | `entry.client` | 56.6 KB | Every route |
 | `jsx-runtime` | 37.2 KB | Every route |
-| `lib` | 3.9 KB | Every route |
-| `AuthPanel` | 1.0 KB | `/login`, `/register` only |
-| `content` | 1.3 KB | Every route |
-| `home`, `root`, `account`, `login`, `register`, `manifest` | 3.4 KB total | Per route |
+| `lib` | 4.3 KB | Every route |
+| `content` | 1.6 KB | Every route |
+| `profile` | 2.0 KB | `/profile` only |
+| `AuthPanel` | 0.8 KB | `/login`, `/register` only |
+| `Field` | 0.5 KB | Wherever a form renders |
+| `home`, `root`, `login`, `register`, `manifest` | 2.9 KB total | Per route |
+| `api.search`, `avatar._username` | 0 KB | Server only, no client component |
 
 About 98 KB of the total is React plus the React Router client runtime, which
 arrives on any route. That is the floor for a hydrated React app and no amount of
 tuning inside this repo moves it much. What the budget actually protects is the
-gap between that floor and the ceiling: about 22 KB of headroom before a
+gap between that floor and the ceiling: about 19 KB of headroom before a
 dependency has to justify itself.
 
 The mongodb driver adds nothing to these numbers. It is imported only from
 `app/lib/mongo.ts`, which no component reaches, so it stays in the server bundle:
 2.9 MB raw, 0.51 MB gzipped, against the 3 MB free-plan worker limit.
 
-`AuthPanel` fell from 10.9 KB to 1.0 KB when the Google and Discord marks came out
-with [ADR 0008](adr/0008-demo-credentials.md). Two inline provider logos were an
-order of magnitude larger than the form that replaced them.
+`AuthPanel` fell from 10.9 KB to 0.8 KB across two changes: dropping the Google and
+Discord marks with [ADR 0008](adr/0008-demo-credentials.md), then moving its field
+markup into the shared `Field` component that `/profile` also uses. Two inline
+provider logos were an order of magnitude larger than the form that replaced them.
 
-The landing page loads none of that chunk anyway, because route-level code
+`api.search` and `avatar._username` are resource routes with no component, so they
+contribute nothing to the client bundle at all.
+
+The landing page loads none of the profile or auth chunks, because route-level code
 splitting is automatic in framework mode. Keeping it that way means not importing
 route components into each other.
 

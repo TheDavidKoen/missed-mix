@@ -1,9 +1,9 @@
 import { data } from "react-router";
 import { z } from "zod";
-
+import { fieldErrorsFrom } from "./form";
 import { accounts, ensureAccountIndexes, withDb } from "./mongo";
 import { hashPassword, verifyPassword } from "./password";
-import { clearAttempts, clientKey, tooManyAttempts } from "./rate-limit";
+import { clearAttempts, limitKey, SIGN_IN_ATTEMPTS, tooManyAttempts } from "./rate-limit";
 import { startSession } from "./session";
 
 export type AuthIntent = "login" | "register";
@@ -41,7 +41,7 @@ export type AuthResult = {
 const ABSENT_ACCOUNT_HASH =
   "pbkdf2-sha256$5000$NsnXodM+pxiubKG3HpeEhg==$8g/MkZbo8y2CkA04FQc0fHL2Hb8z5KwB0Q9ITRSRzfI=";
 
-const LANDING = "/account";
+const LANDING = "/profile";
 
 function isDuplicateKey(error: unknown) {
   return typeof error === "object" && error !== null && (error as { code?: number }).code === 11000;
@@ -62,13 +62,9 @@ export async function submitCredentials(request: Request, intent: AuthIntent, en
   const parsed = schema.safeParse(submitted);
 
   if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of parsed.error.issues) {
-      const field = String(issue.path[0] ?? "");
-      if (field && !fieldErrors[field]) fieldErrors[field] = issue.message;
-    }
-
-    return data({ fieldErrors, username } satisfies AuthResult, { status: 400 });
+    return data({ fieldErrors: fieldErrorsFrom(parsed.error), username } satisfies AuthResult, {
+      status: 400,
+    });
   }
 
   return intent === "register"
@@ -117,9 +113,9 @@ async function authenticate(
   credentials: z.infer<typeof loginSchema>,
   username: string,
 ) {
-  const key = clientKey(request, credentials.username);
+  const key = limitKey(request, `signin:${credentials.username.toLowerCase()}`);
 
-  if (tooManyAttempts(key)) {
+  if (tooManyAttempts(key, SIGN_IN_ATTEMPTS)) {
     return data(
       { error: "Too many attempts. Wait a minute and try again.", username } satisfies AuthResult,
       { status: 429 },

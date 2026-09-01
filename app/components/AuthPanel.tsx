@@ -2,62 +2,9 @@ import { Form, Link, useNavigation } from "react-router";
 
 import { AUTH } from "~/content";
 import type { AuthIntent, AuthResult } from "~/lib/auth";
+import { Field } from "./Field";
 import { PillButton } from "./Pill";
 import { Wordmark } from "./Wordmark";
-
-const field =
-  "rounded-xl border border-line bg-raised px-4 py-3 text-base text-ink placeholder:text-muted";
-
-function Field({
-  name,
-  label,
-  type,
-  autoComplete,
-  hint,
-  defaultValue,
-  error,
-}: {
-  name: string;
-  label: string;
-  type: string;
-  autoComplete: string;
-  hint?: string;
-  defaultValue?: string;
-  error?: string;
-}) {
-  const hintId = hint ? `${name}-hint` : undefined;
-  const errorId = error ? `${name}-error` : undefined;
-  const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
-
-  return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={name} className="text-sm font-bold tracking-tight">
-        {label}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        autoComplete={autoComplete}
-        defaultValue={defaultValue}
-        required
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy}
-        className={field}
-      />
-      {error ? (
-        <p id={errorId} className="text-sm text-danger">
-          {error}
-        </p>
-      ) : null}
-      {hint ? (
-        <p id={hintId} className="text-xs text-muted">
-          {hint}
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 export function AuthPanel({ intent, result }: { intent: AuthIntent; result?: AuthResult }) {
   const navigation = useNavigation();

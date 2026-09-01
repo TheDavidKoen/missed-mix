@@ -10,7 +10,7 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "pages:build": "pnpm run build && node scripts/bundle-pages.mjs",
-    "preview": "pnpm run pages:build && wrangler pages dev build/client --compatibility-date=2026-08-25 --env-file .dev.vars",
+    "preview": "pnpm run pages:build && wrangler pages dev build/client --compatibility-date=2026-08-25 --env-file .dev.vars --r2 AVATARS",
     "typecheck": "wrangler types && react-router typegen && tsc -b",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
