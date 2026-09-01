@@ -68,6 +68,11 @@ await cp(SERVER, join(WORKER, "server"), { recursive: true });
 /* wrangler.json here is a Workers deploy pointer. Left in place, wrangler pages
    follows it and uploads the Workers build instead of this directory. */
 await rm(join(WORKER, "server", "wrangler.json"), { force: true });
+
+/* The Cloudflare Vite plugin copies .dev.vars into the build output so local
+   tooling can read it. Every secret this project has is in that file, and this
+   directory is what gets uploaded. */
+await rm(join(WORKER, "server", ".dev.vars"), { force: true });
 await rm(join(WORKER, "server", ".vite"), { recursive: true, force: true });
 
 await writeFile(join(WORKER, "index.js"), ENTRY);

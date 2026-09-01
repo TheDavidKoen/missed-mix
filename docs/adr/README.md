@@ -14,6 +14,7 @@ what was decided, and what it costs.
 | [0007](0007-native-details-over-js-accordion.md) | Native `<details>` over a JavaScript accordion | Accepted |
 | [0008](0008-demo-credentials.md) | Username and password credentials for the demo | Accepted |
 | [0009](0009-mongodb-atlas-over-d1.md) | MongoDB Atlas over Cloudflare D1 | Accepted |
+| [0010](0010-avatars-in-mongodb-not-r2.md) | Avatars in MongoDB rather than R2 | Accepted |
 
 Superseded records stay in place with their status changed, rather than being
 deleted. 0004 is worth reading alongside 0008: the argument it makes is sound for

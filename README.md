@@ -22,7 +22,7 @@ be read alongside the running app.
 | Styling | Tailwind CSS v4 via `@tailwindcss/vite` |
 | Validation | Zod, one schema per boundary |
 | Database | MongoDB Atlas M0, official driver over TCP |
-| Object storage | Cloudflare R2, avatars only |
+| Object storage | None. Avatars live in MongoDB ([ADR 0010](docs/adr/0010-avatars-in-mongodb-not-r2.md)) |
 | Realtime | Durable Objects, one per accepted pair *(stage 8)* |
 | Identity | Username and password, no email, no third party |
 | Catalogue | Spotify Web API, Client Credentials only |
@@ -88,7 +88,7 @@ app/
 │   └── Wordmark    The product name
 ├── lib/            Boundary logic. No JSX
 │   ├── auth        Credential schemas, registration, sign-in
-│   ├── avatar      Upload validation and R2 access
+│   ├── avatar      Upload validation and storage
 │   ├── context     Carries env from the worker into loaders
 │   ├── form        Zod errors to field errors
 │   ├── mongo       Client, collections, index assertions
@@ -130,7 +130,7 @@ boundary.
 | 1 | Logged-out entry: landing, `/login`, `/register` | Done |
 | 2 | Credentials, sessions, rate limiting, `accounts` in Atlas | Done |
 | 3 | Onboarding and profiles | Done |
-| 4 | Avatars on R2 | Done |
+| 4 | Avatars | Done |
 | 5 | Spotify catalogue and the taste picker | Done |
 | 6 | Similarity scoring and discovery |  |
 | 7 | Vibrations: send, accept, decline |  |

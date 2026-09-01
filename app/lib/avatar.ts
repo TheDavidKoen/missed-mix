@@ -1,3 +1,5 @@
+import { avatars, ensureAvatarIndexes, withDb } from "./mongo";
+
 const MAX_BYTES = 2 * 1024 * 1024;
 const SNIFF_BYTES = 12;
 
@@ -23,10 +25,6 @@ const SIGNATURES = [
 
 export type AvatarError = "too-large" | "not-an-image";
 
-function keyFor(usernameLower: string) {
-  return `avatars/${usernameLower}`;
-}
-
 export async function storeAvatar(
   env: Env,
   usernameLower: string,
@@ -38,13 +36,28 @@ export async function storeAvatar(
   const signature = SIGNATURES.find((candidate) => candidate.match(head));
   if (!signature) return "not-an-image";
 
-  await env.AVATARS.put(keyFor(usernameLower), await file.arrayBuffer(), {
-    httpMetadata: { contentType: signature.type },
+  const { Binary } = await import("mongodb");
+  const bytes = new Binary(new Uint8Array(await file.arrayBuffer()));
+
+  await withDb(env, async (db) => {
+    await ensureAvatarIndexes(db);
+
+    return avatars(db).updateOne(
+      { usernameLower },
+      { $set: { data: bytes, contentType: signature.type, updatedAt: new Date() } },
+      { upsert: true },
+    );
   });
 
   return null;
 }
 
-export function readAvatar(env: Env, usernameLower: string) {
-  return env.AVATARS.get(keyFor(usernameLower));
+export async function readAvatar(env: Env, usernameLower: string) {
+  const doc = await withDb(env, (db) =>
+    avatars(db).findOne({ usernameLower }, { projection: { _id: 0, data: 1, contentType: 1 } }),
+  );
+
+  if (!doc) return null;
+
+  return { bytes: new Uint8Array(doc.data.buffer), contentType: doc.contentType };
 }

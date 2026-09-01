@@ -94,7 +94,7 @@ Planned personal data, and the rules it carries:
 | Username | Registration | Public to signed-in users. It is the identifier |
 | Password digest | Registration | Never leaves the database, never logged, never echoed |
 | Display name, bio | Onboarding | Public to signed-in users |
-| Avatar | R2 upload | Public to signed-in users, content-sniffed on upload |
+| Avatar | Upload | Public to signed-in users, content-sniffed, 2 MB cap ([ADR 0010](adr/0010-avatars-in-mongodb-not-r2.md)) |
 | Birth year | Onboarding | Year only, never a full date. Displayed as an age band |
 | Sex | Onboarding | Optional, with a "prefer not to say" value. Never inferred |
 | Taste picks | Spotify search | Public to signed-in users |
@@ -138,7 +138,7 @@ In place now:
 | Sign-in rate limit | 8 attempts per minute per IP and username, in-isolate |
 | Username uniqueness | Unique index on `usernameLower`, asserted by the code that depends on it |
 | Avatar uploads | Sniffed by magic number, never the declared type, capped at 2 MB |
-| Avatar access | Session required; the R2 bucket is never public |
+| Avatar access | Session required; avatars live in the database, never on public storage |
 | Third-party image URLs | Restricted to Spotify's CDN on save, so a profile cannot embed an arbitrary tracker |
 | Search endpoint | Requires a session, so it is not an open proxy to our Spotify quota |
 
