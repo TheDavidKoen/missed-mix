@@ -37,10 +37,24 @@ why each was chosen.
 
 ```sh
 pnpm install
-pnpm dev
+cp .dev.vars.example .dev.vars
 ```
 
-The dev server runs at **http://localhost:5173**.
+Fill in `.dev.vars`: an Atlas connection string, a database name, a session secret
+from `openssl rand -base64 32`, and a Spotify client ID and secret. Then create the
+indexes and start the app:
+
+```sh
+pnpm run init-db
+pnpm preview
+```
+
+The app runs at **http://localhost:8788** with the database, avatars and Spotify
+search all working.
+
+`pnpm dev` at **http://localhost:5173** is faster and has hot reload, but it cannot
+reach the database, so you cannot sign in there. Use it for layout, styling and
+copy. See [Two dev servers](#two-dev-servers).
 
 ## Two dev servers
 
