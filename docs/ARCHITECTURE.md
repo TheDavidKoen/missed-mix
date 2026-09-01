@@ -98,6 +98,7 @@ Planned personal data, and the rules it carries:
 | Birth year | Onboarding | Year only, never a full date. Displayed as an age band |
 | Sex | Onboarding | Optional, with a "prefer not to say" value. Never inferred |
 | Taste picks | Spotify search | Public to signed-in users |
+| Vibration | Sender | The song and sender are visible only to the recipient |
 | Conversation messages | Chat | Readable only by the two participants, ever |
 
 The last row is the direct answer to the flaw in the app this replaces, which had
@@ -111,6 +112,21 @@ the registration path asserts it too, once per isolate. That redundancy is
 deliberate: the index was found missing on 2026-08-31 and two accounts had already
 taken the same username. An invariant the code depends on should not live only in a
 script somebody remembered to run.
+
+## Signed-in shell
+
+`routes/signed-in.tsx` is a layout route wrapping `/profile`, `/mixers` and
+`/vibrations`. It owns three things the child routes would otherwise each repeat:
+the session check and redirect to `/login`, the single profile read, and the header
+with the main navigation.
+
+The navigation only renders once a profile exists. Registration lands on `/profile`
+with an empty form, and there is nothing useful to browse until it is filled in.
+
+The profile read lives in the layout rather than in each page because every call to
+`withDb` opens a fresh connection ([ADR 0009](adr/0009-mongodb-atlas-over-d1.md)).
+Two loaders reading the same profile would pay two handshakes, so the child routes
+read the parent's data through `useRouteLoaderData` instead.
 
 ## Music data
 
