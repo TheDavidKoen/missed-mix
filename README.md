@@ -10,8 +10,8 @@ be read alongside the running app.
 
 > **Status: in build.** Stage 2 of eleven, live at
 > [missed-mix.pages.dev](https://missed-mix.pages.dev). Registration and sign-in
-> work. The one thing `pnpm dev` cannot do is reach the database, so those two
-> paths are verified by deploying. See [Known issues](#known-issues).
+> work. `pnpm dev` cannot reach the database; `pnpm preview` can. See
+> [Two dev servers](#two-dev-servers).
 
 ## Stack
 
@@ -42,14 +42,25 @@ pnpm dev
 
 The dev server runs at **http://localhost:5173**.
 
-`pnpm dev` serves the app through Vite, which does **not** apply the security
-response headers. Those are set at the Pages edge entry. Use `pnpm preview` for
-anything that depends on them.
+## Two dev servers
 
-**One thing does not work under `pnpm dev`: the database round trip itself.**
-Every page renders, every validation path runs and the rate limiter works. Only a
-credential actually being checked against Atlas needs a deployment. See
-[Known issues](#known-issues).
+They do different jobs, and you will use both.
+
+| | `pnpm dev` | `pnpm preview` |
+|---|---|---|
+| Runs | Vite, port 5173 | The real Pages bundle in Workerd, port 8788 |
+| Reload | HMR, instant | Rebuild required |
+| Database | **No.** The driver cannot load | **Yes.** Real Atlas |
+| Signed-in pages | No, you cannot log in | **Yes** |
+| Security headers | No | Yes |
+| Secrets | Loaded | Loaded via `--env-file .dev.vars` |
+
+Use `pnpm dev` for anything visual: pages, layout, copy, styles, validation and
+field errors all work there, and so does the sign-in rate limiter. Switch to
+`pnpm preview` the moment you need to actually be logged in, or need to see the
+response headers and asset serving as they ship.
+
+`pnpm preview` needs `.dev.vars`, so copy `.dev.vars.example` first.
 
 ## Scripts
 
@@ -58,7 +69,7 @@ credential actually being checked against Atlas needs a deployment. See
 | `pnpm dev` | Vite dev server with HMR |
 | `pnpm build` | Production build to `build/` |
 | `pnpm run pages:build` | `build`, then reshape it into a Pages bundle |
-| `pnpm preview` | Build the Pages bundle and serve it through Workerd |
+| `pnpm preview` | Build the Pages bundle and serve it through Workerd, with the database |
 | `pnpm run typecheck` | Wrangler types, React Router typegen, `tsc -b` |
 | `pnpm lint` | Biome lint + format check |
 | `pnpm run lint:fix` | Apply Biome's safe fixes |
@@ -237,9 +248,10 @@ contains the damage. React Router loads every route module to build its manifest
 so a top-level import put the driver in the graph of **every** page and broke the
 landing page too. Now the failure is limited to requests that actually query.
 
-**What still works in dev:** every page, every Zod validation path, the field
-errors, and the sign-in rate limiter. **What does not:** registering an account,
-and checking a password against a stored one. Those two are verified by deploying.
+**What still works under `pnpm dev`:** every page, every Zod validation path, the
+field errors, and the sign-in rate limiter. **What does not:** anything that
+queries. Use `pnpm preview` for those, which runs the production bundle where the
+driver loads correctly.
 
 A `pnpm patch` of `tr46`, a Vite `resolve.alias` and `ssr.noExternal` were each
 tried and none fixed it, so all three were removed rather than left implying a fix
