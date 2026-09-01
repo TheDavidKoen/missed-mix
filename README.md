@@ -8,10 +8,10 @@ Built by **David Koen** as a portfolio piece. The repository is part of the
 deliverable: the branch history, pull requests and decision records are meant to
 be read alongside the running app.
 
-> **Status: in build.** Stage 2 of eleven. Registration and sign-in work, live at
-> [missed-mix.pages.dev](https://missed-mix.pages.dev). The Vite dev server cannot
-> load the mongodb driver, so the auth routes run only in a Pages build for now.
-> See [Known issues](#known-issues).
+> **Status: in build.** Stage 2 of eleven, live at
+> [missed-mix.pages.dev](https://missed-mix.pages.dev). Registration and sign-in
+> work. The one thing `pnpm dev` cannot do is reach the database, so those two
+> paths are verified by deploying. See [Known issues](#known-issues).
 
 ## Stack
 
@@ -46,8 +46,10 @@ The dev server runs at **http://localhost:5173**.
 response headers. Those are set at the Pages edge entry. Use `pnpm preview` for
 anything that depends on them.
 
-**The auth routes do not work under `pnpm dev` today.** See
-[Known issues](#known-issues). The landing page does.
+**One thing does not work under `pnpm dev`: the database round trip itself.**
+Every page renders, every validation path runs and the rate limiter works. Only a
+credential actually being checked against Atlas needs a deployment. See
+[Known issues](#known-issues).
 
 ## Scripts
 
@@ -100,7 +102,7 @@ boundary.
 |---|---|---|
 | 0 | Scaffold, toolchain, CI, docs | Done |
 | 1 | Logged-out entry: landing, `/login`, `/register` | Done |
-| 2 | Credentials, sessions, rate limiting, `accounts` in Atlas | In progress |
+| 2 | Credentials, sessions, rate limiting, `accounts` in Atlas | Done |
 | 3 | Onboarding and profiles |  |
 | 4 | Avatars on R2 |  |
 | 5 | Spotify catalogue and the taste picker |  |
@@ -175,8 +177,17 @@ stylesheet quietly reaching out to Google Fonts.
 
 ## Deployment
 
-Cloudflare Pages, built from `main` on every push. Pull requests get their own
-preview URL.
+Cloudflare Pages. **The project is not connected to GitHub yet**, so pushing does
+not deploy and branches get no preview URLs. Deployments are made from a working
+copy:
+
+```sh
+pnpm run pages:build
+pnpm exec wrangler pages deploy build/client --project-name missed-mix --branch main
+```
+
+Connecting the repo in the dashboard would give automatic deploys and per-branch
+previews, and is the next infrastructure task. The build settings it would need:
 
 | Setting | Value |
 |---|---|
@@ -214,16 +225,25 @@ scripts by default and only warns. `esbuild` and `workerd` both need theirs to
 fetch platform binaries, so `pnpm-workspace.yaml` sets `allowBuilds` for both. A
 clone that skips this fails at build time, not install time.
 
-**The Vite dev server cannot load the mongodb driver.** Any request to `/login`,
-`/register` or `/account` fails with `Calling require for "punycode/punycode.js"
-in an environment that doesn't expose the require function`. It comes from
-`tr46`, reached through `whatwg-url` and `mongodb-connection-string-url`.
+**The Vite dev server cannot load the mongodb driver.** A request that reaches
+Atlas fails with `Calling require for "punycode/" in an environment that doesn't
+expose the require function`, from `tr46` via `whatwg-url` and
+`mongodb-connection-string-url`. Vite externalises dependencies in SSR dev, so the
+`require` survives to runtime; the production build resolves it statically and
+emits no runtime `require` at all.
 
-The production build is unaffected: it resolves the specifier statically and emits
-no runtime `require` at all. A `pnpm patch` of `tr46`, a Vite alias and
-`ssr.noExternal` were each tried and none fixed dev, so all three were removed
-rather than left in place implying a fix that does not exist. Unresolved. Until it
-is, auth is verified by deploying.
+`withDb` imports the driver dynamically rather than at module scope, which
+contains the damage. React Router loads every route module to build its manifest,
+so a top-level import put the driver in the graph of **every** page and broke the
+landing page too. Now the failure is limited to requests that actually query.
+
+**What still works in dev:** every page, every Zod validation path, the field
+errors, and the sign-in rate limiter. **What does not:** registering an account,
+and checking a password against a stored one. Those two are verified by deploying.
+
+A `pnpm patch` of `tr46`, a Vite `resolve.alias` and `ssr.noExternal` were each
+tried and none fixed it, so all three were removed rather than left implying a fix
+that does not exist.
 
 **`wrangler pages dev` does not inject `.dev.vars`.** It prints "Using secrets
 defined in .dev.vars" and lists them, then hands an advanced-mode `_worker.js` an
