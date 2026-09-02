@@ -1,7 +1,8 @@
-import { Form, Link, redirect } from "react-router";
+import { Link, redirect } from "react-router";
 
-import { MusicPicker } from "~/components/MusicPicker";
-import { PillButton, PillLink } from "~/components/Pill";
+import { PickTile } from "~/components/PickTile";
+import { PillLink } from "~/components/Pill";
+import { VibrationPanel } from "~/components/VibrationPanel";
 import { PROMPTS, SITE, VIBRATION } from "~/content";
 import { cloudflareContext } from "~/lib/context";
 import { readPublicProfile } from "~/lib/profile";
@@ -69,9 +70,6 @@ export default function MixerProfile({ loaderData, actionData }: Route.Component
   const { profile, sent, received } = loaderData;
   const featured = PROMPTS.filter((prompt) => prompt.kind !== "artist");
   const artists = PROMPTS.filter((prompt) => prompt.kind === "artist");
-  const alreadySent = sent !== null;
-  const waiting = received?.status === "pending";
-  const open = received?.status === "accepted" || sent?.status === "accepted";
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 pb-16">
@@ -79,20 +77,20 @@ export default function MixerProfile({ loaderData, actionData }: Route.Component
         Back to Mixers
       </PillLink>
 
-      <div className="mt-8 flex items-start gap-6">
+      <div className="mt-8 flex items-start gap-4 sm:gap-6">
         {profile.avatarUpdatedAt ? (
           <img
             src={`/avatar/${profile.usernameLower}?v=${new Date(profile.avatarUpdatedAt).getTime()}`}
             alt=""
-            className="size-28 shrink-0 rounded-full object-cover"
+            className="size-20 shrink-0 rounded-full object-cover sm:size-28"
           />
         ) : (
-          <span className="size-28 shrink-0 rounded-full bg-raised" />
+          <span className="size-20 shrink-0 rounded-full bg-raised sm:size-28" />
         )}
 
         <div className="min-w-0 flex-1">
-          <h1 className="text-4xl font-black tracking-tight">{profile.firstName}</h1>
-          <p className="text-muted">{profile.usernameLower}</p>
+          <h1 className="text-3xl font-black tracking-tight sm:text-4xl">{profile.firstName}</h1>
+          <p className="truncate text-muted">{profile.usernameLower}</p>
           {profile.description ? (
             <p className="mt-4 text-balance text-ink">{profile.description}</p>
           ) : null}
@@ -122,113 +120,13 @@ export default function MixerProfile({ loaderData, actionData }: Route.Component
         </div>
       </section>
 
-      <section className="mt-12 rounded-3xl bg-surface p-6 sm:p-8">
-        {open ? (
-          <>
-            <h2 className="text-lg font-black tracking-tight">{VIBRATION.accepted}</h2>
-            <PillLink to={`/vibrations/${profile.usernameLower}`} className="mt-5">
-              {VIBRATION.openChat}
-            </PillLink>
-          </>
-        ) : waiting ? (
-          <>
-            <h2 className="text-lg font-black tracking-tight">{VIBRATION.accept}</h2>
-            <p className="mt-2 text-sm text-muted">{VIBRATION.acceptHint}</p>
-
-            {received?.song ? (
-              <div className="mt-5 flex items-center gap-4 rounded-2xl bg-raised p-4">
-                {received.song.image ? (
-                  <img
-                    src={received.song.image}
-                    alt=""
-                    className="size-16 shrink-0 rounded-xl object-cover"
-                    loading="lazy"
-                  />
-                ) : null}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold">{received.song.name}</p>
-                  <p className="truncate text-sm text-muted">{received.song.artist}</p>
-                </div>
-              </div>
-            ) : null}
-
-            {actionData?.error ? (
-              <p role="alert" className="mt-4 text-sm text-danger">
-                {actionData.error}
-              </p>
-            ) : null}
-
-            <Form method="post" className="mt-5">
-              <input type="hidden" name="intent" value="accept" />
-              <PillButton type="submit">{VIBRATION.accept}</PillButton>
-            </Form>
-          </>
-        ) : alreadySent ? (
-          <>
-            <h2 className="text-lg font-black tracking-tight">{VIBRATION.send}</h2>
-            <p
-              role="status"
-              className="mt-4 rounded-xl bg-accent px-4 py-3 text-sm font-bold text-on-accent"
-            >
-              {VIBRATION.sent}
-            </p>
-          </>
-        ) : (
-          <>
-            <h2 className="text-lg font-black tracking-tight">{VIBRATION.send}</h2>
-            <p className="mt-2 text-sm text-muted">{VIBRATION.hint}</p>
-
-            {actionData?.error ? (
-              <p role="alert" className="mt-4 text-sm text-danger">
-                {actionData.error}
-              </p>
-            ) : null}
-
-            <Form method="post" className="mt-5 flex flex-col gap-4">
-              <MusicPicker name="song" kind="track" label={VIBRATION.prompt} initial={null} />
-              <PillButton type="submit" className="self-start">
-                {VIBRATION.submit}
-              </PillButton>
-            </Form>
-          </>
-        )}
-      </section>
+      <VibrationPanel
+        username={profile.usernameLower}
+        sent={sent}
+        received={received}
+        error={actionData?.error}
+      />
     </main>
-  );
-}
-
-function PickTile({
-  label,
-  pick,
-  big = false,
-}: {
-  label: string;
-  pick: { name: string; artist: string | null; image: string | null } | null | undefined;
-  big?: boolean;
-}) {
-  return (
-    <div className="min-w-0 rounded-2xl bg-raised p-4 sm:p-5">
-      <p className={`font-bold tracking-tight ${big ? "text-base" : "text-sm"}`}>{label}</p>
-
-      {pick ? (
-        <div className="mt-4 flex min-w-0 items-center gap-3 sm:gap-4">
-          {pick.image ? (
-            <img
-              src={pick.image}
-              alt=""
-              className={`${big ? "size-20 sm:size-24" : "size-12"} shrink-0 rounded-xl object-cover`}
-              loading="lazy"
-            />
-          ) : null}
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-bold">{pick.name}</p>
-            {pick.artist ? <p className="truncate text-sm text-muted">{pick.artist}</p> : null}
-          </div>
-        </div>
-      ) : (
-        <p className="mt-4 text-sm text-muted">Not answered.</p>
-      )}
-    </div>
   );
 }
 

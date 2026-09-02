@@ -25,6 +25,247 @@
   --ease-expand: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+@layer components {
+  /* Both bubbles position from these, so the dock stays one column and neither
+     can drift onto the other. Each claims a slot with --launcher-order. */
+  :root {
+    --dock-size: 3.25rem;
+    --dock-gap: 0.65rem;
+    --dock-right: 1.25rem;
+    --dock-base: 1.25rem;
+    --dock-top: 5.5rem;
+  }
+
+  .launcher {
+    position: fixed;
+    right: var(--dock-right);
+    bottom: calc(
+      var(--dock-base) +
+      var(--launcher-order, 0) *
+      (var(--dock-size) + var(--dock-gap))
+    );
+    z-index: 55;
+    display: grid;
+    place-items: center;
+    width: var(--dock-size);
+    height: var(--dock-size);
+    padding: 0;
+    background-color: var(--color-raised);
+    border: 1px solid var(--color-line);
+    border-radius: 50%;
+    cursor: pointer;
+    transition:
+      transform 0.28s var(--ease-expand),
+      border-color 0.28s var(--ease-expand),
+      box-shadow 0.28s var(--ease-expand);
+  }
+
+  /* The signed-in header wraps to two rows below this width, so the dock stays
+     out of its way at the bottom and moves up beside it once it is one row. */
+  @media (width >= 40rem) {
+    .launcher {
+      top: calc(var(--dock-top) + var(--launcher-order, 0) * (var(--dock-size) + var(--dock-gap)));
+      bottom: auto;
+    }
+  }
+
+  .launcher:hover,
+  .launcher:focus-visible {
+    transform: translateY(-3px);
+    border-color: var(--color-accent);
+    box-shadow: 0 10px 24px rgb(0 0 0 / 0.55);
+  }
+
+  /* Masked rather than embedded, so the file in public/ stays the single source
+     of the shape and the colour is set here. An <img> could not be recoloured,
+     because page CSS does not reach inside it. */
+  .launcher__mark {
+    width: 1.6rem;
+    height: 1.6rem;
+    background-color: var(--color-ink);
+    mask-image: var(--launcher-mark);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+  }
+
+  /* A brand mark keeps its own colours, so it is an image rather than a mask. */
+  .launcher__image {
+    width: 1.7rem;
+    height: 1.7rem;
+    object-fit: contain;
+  }
+
+  .launcher__tip {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 0.85rem);
+    padding: 0.45rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--color-ink);
+    background-color: var(--color-raised-hover);
+    border-radius: 0.4rem;
+    opacity: 0;
+    transform: translateY(-50%) translateX(0.4rem);
+    pointer-events: none;
+    transition:
+      opacity 0.2s linear,
+      transform 0.26s var(--ease-expand);
+  }
+
+  .launcher__tip::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    border: 5px solid transparent;
+    border-left-color: var(--color-raised-hover);
+    transform: translateY(-50%);
+  }
+
+  .launcher:hover .launcher__tip,
+  .launcher:focus-visible .launcher__tip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+
+  /* inset plus auto margins is what actually centres a modal dialog; the user
+     agent default only centres horizontally once a max-height is set. */
+  .sheet {
+    inset: 0;
+    margin: auto;
+    width: min(46rem, 92vw);
+    max-height: 84vh;
+    padding: 0;
+
+    /* The dialog itself must never scroll, or it grows a scrollbar alongside
+       the body's and the header scrolls away with the content. */
+    overflow: hidden;
+    color: var(--color-ink);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 1rem;
+    opacity: 0;
+    transform: scale(0.92);
+
+    /* Closing is quick and linear so dismissing feels immediate. */
+    transition:
+      opacity 0.16s ease-in,
+      transform 0.18s ease-in,
+      display 0.18s allow-discrete,
+      overlay 0.18s allow-discrete;
+  }
+
+  /* flex, not block: the body then takes the leftover height and scrolls on its
+     own rather than sharing one scroll container with the header. */
+  .sheet[open] {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity 0.2s linear,
+      transform 0.36s var(--ease-expand),
+      display 0.36s allow-discrete,
+      overlay 0.36s allow-discrete;
+  }
+
+  /* display and overlay need allow-discrete or the dialog snaps in with no
+     transition; @starting-style supplies the frame to animate from. */
+  @starting-style {
+    .sheet[open] {
+      opacity: 0;
+      transform: translateY(1.25rem) scale(0.985);
+    }
+  }
+
+  .sheet::backdrop {
+    background-color: rgb(0 0 0 / 0.65);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition:
+      opacity 0.3s linear,
+      display 0.3s allow-discrete,
+      overlay 0.3s allow-discrete;
+  }
+
+  .sheet[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .sheet[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  /* Outside the scroll container, so the close control is always reachable. */
+  .sheet__bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.75rem 1.1rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  /* min-height: 0 is what lets a flex child shrink below its content and
+     scroll; without it the body pushes the dialog past its max-height. */
+  .sheet__body {
+    flex: 1;
+    min-height: 0;
+    padding: 1.4rem 1.75rem 1.75rem;
+    overflow-y: auto;
+  }
+
+  .stack__row {
+    display: grid;
+    gap: 0.35rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .stack__row:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  @media (width >= 44rem) {
+    .stack__row {
+      grid-template-columns: 13rem 1fr;
+      gap: 0.35rem 1.75rem;
+    }
+  }
+
+  .stack__logo {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: 0.5rem;
+    object-fit: contain;
+    object-position: left center;
+
+    /* simple-icons ship solid black, which is invisible on this background. */
+    filter: invert(1);
+  }
+
+  /* Shortening a transition parks it mid-cycle rather than stopping it, so the
+     motion is removed outright rather than sped up. */
+  @media (prefers-reduced-motion: reduce) {
+    .launcher,
+    .launcher__tip,
+    .sheet,
+    .sheet[open],
+    .sheet::backdrop,
+    .sheet[open]::backdrop {
+      transition: none;
+      transform: none;
+    }
+  }
+}
+
 @layer base {
   :focus-visible {
     outline: 2px solid var(--color-accent);

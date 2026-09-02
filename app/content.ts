@@ -112,3 +112,74 @@ export const NAV = [
   { to: "/mixers", label: "Mixers" },
   { to: "/vibrations", label: "Vibrations" },
 ] as const;
+
+export type StackEntry = {
+  layer: string;
+  choice: string;
+  logo: string | null;
+  why: string;
+  adr: string | null;
+};
+
+export const DOCK = {
+  stackLabel: "Open the tech stack",
+  stackTip: "Program's tech stack.",
+  stackEyebrow: "Decisions, not defaults",
+  stackHeading: "What Missed Mix runs on",
+  close: "Close",
+  siteLabel: "David Koen's portfolio",
+  siteTip: "Back to my site.",
+  siteHref: "https://davidkoen.is-a.dev",
+} as const;
+
+export const STACK: readonly StackEntry[] = [
+  {
+    layer: "Framework",
+    choice: "React Router",
+    logo: "/reactrouter.svg",
+    why: "Pages are put together on the server and arrive as finished HTML, so they show up before any code has to download. Every form still works if that code never arrives at all.",
+    adr: "0001-react-router-over-nextjs",
+  },
+  {
+    layer: "Styling",
+    choice: "Tailwind CSS",
+    logo: "/tailwindcss.svg",
+    why: "The styling framework I build with. Popular, well documented, and flexible.",
+    adr: null,
+  },
+  {
+    layer: "Database",
+    choice: "MongoDB",
+    logo: "/mongodb.svg",
+    why: "Everything about a person lives in one record, so opening their profile is a single trip to the database rather than several stitched together.",
+    adr: "0009-mongodb-atlas-over-d1",
+  },
+  {
+    layer: "Safety",
+    choice: "Checked at the door",
+    logo: "/zod.svg",
+    why: "Nothing sent to this app is trusted until it has been checked against the shape it is supposed to be. That covers what you type, what is in the address bar, and what other companies' services send back.",
+    adr: null,
+  },
+  {
+    layer: "Hosting",
+    choice: "Cloudflare Pages",
+    logo: "/cloudflarepages.svg",
+    why: "Where the app lives. On a network with machines worldwide, so it answers from somewhere near you rather than from one place.",
+    adr: "0002-cloudflare-pages-over-workers",
+  },
+  {
+    layer: "Language",
+    choice: "TypeScript",
+    logo: "/typescript.svg",
+    why: "Everything here is written in TypeScript. It checks my work as I type, so a whole class of mistakes gets caught at my desk rather than on the live site.",
+    adr: null,
+  },
+  {
+    layer: "Quality gates",
+    choice: "Automated checks",
+    logo: "/lighthouse.svg",
+    why: "Every change I make runs an automated review before it is allowed to go live: formatting, type errors, a Google Lighthouse speed audit, and a size limit that stops the build if this page ever gets too heavy.",
+    adr: "0003-github-flow",
+  },
+];

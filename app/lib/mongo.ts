@@ -4,7 +4,7 @@ import type { Binary, Collection, Db, MongoClient } from "mongodb";
 import type { PickKey } from "~/content";
 import type { MusicPick } from "./spotify";
 
-export type Account = {
+type Account = {
   username: string;
   usernameLower: string;
   passwordHash: string;
@@ -113,7 +113,7 @@ export async function ensureAccountIndexes(db: Db) {
   accountIndexesEnsured = true;
 }
 
-export type Profile = {
+type Profile = {
   avatarUpdatedAt: Date | null;
   usernameLower: string;
   firstName: string;
@@ -140,7 +140,7 @@ export async function ensureProfileIndexes(db: Db) {
   profileIndexesEnsured = true;
 }
 
-export type Avatar = {
+type Avatar = {
   usernameLower: string;
   data: Binary;
   contentType: string;
@@ -164,7 +164,7 @@ export async function ensureAvatarIndexes(db: Db) {
   avatarIndexesEnsured = true;
 }
 
-export type Vibration = {
+type Vibration = {
   fromUsernameLower: string;
   toUsernameLower: string;
   song: MusicPick;
@@ -192,7 +192,7 @@ export async function ensureVibrationIndexes(db: Db) {
   vibrationIndexesEnsured = true;
 }
 
-export type Message = {
+type Message = {
   pairKey: string;
   fromUsernameLower: string;
   body: string;

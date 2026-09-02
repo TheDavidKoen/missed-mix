@@ -11,7 +11,7 @@ export type AuthIntent = "login" | "register";
 /* Registration enforces the policy. Signing in deliberately does not: an account
    created before a rule changed must still be able to get in, and telling a
    stranger which rules a stored password breaks is free reconnaissance. */
-export const registerSchema = z.object({
+const registerSchema = z.object({
   username: z
     .string()
     .trim()
@@ -24,7 +24,7 @@ export const registerSchema = z.object({
     .max(128, "Passwords are at most 128 characters."),
 });
 
-export const loginSchema = z.object({
+const loginSchema = z.object({
   username: z.string().trim().min(1, "Enter your username."),
   password: z.string().min(1, "Enter your password."),
 });
