@@ -216,7 +216,7 @@ function PickTile({
             <img
               src={pick.image}
               alt=""
-              className={`${big ? "size-24" : "size-12"} shrink-0 rounded-xl object-cover`}
+              className={`${big ? "size-20 sm:size-24" : "size-12"} shrink-0 rounded-xl object-cover`}
               loading="lazy"
             />
           ) : null}

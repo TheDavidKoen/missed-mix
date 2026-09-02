@@ -39,13 +39,15 @@ than a module or runtime error. The Pages limitation is stale. The driver costs
 
 Three of these are real losses and are the price of the decision.
 
-- **No connection pooling.** The Workers runtime ties open sockets to the I/O
-  context of the request that opened them, so a `MongoClient` cannot be held in
-  module scope and reused. Every request that touches the database pays a fresh
-  TCP and TLS handshake. This is latency rather than CPU, and CPU is the metered
-  resource, so it does not threaten the 10 ms limit. It does undercut the reason
-  for being on the edge. A Durable Object holding the connection is the fix, and
-  stage 8 introduces Durable Objects for chat anyway.
+- **No connection pooling across requests.** The Workers runtime ties open
+  sockets to the I/O context of the request that opened them, so a `MongoClient`
+  cannot be held in module scope and reused. Every request that touches the
+  database pays a fresh TCP and TLS handshake, measured at 150 to 350 ms against
+  Atlas. This is latency rather than CPU, and CPU is the metered resource, so it
+  does not threaten the 10 ms limit. It does undercut the reason for being on the
+  edge. Reuse *within* a request was recovered on 2026-09-02; see the amendment
+  below. Reuse *across* requests still needs a Durable Object holding the
+  connection, and stage 8 introduces Durable Objects for chat anyway.
 - **Atlas must allow `0.0.0.0/0`.** Workers have no stable egress IPs, so no
   narrower rule exists. The cluster is reachable from the whole internet with
   credentials as the only defence, where D1 was reachable only through a binding.
@@ -68,3 +70,23 @@ see being handled, which a binding to a managed SQLite would not have shown.
 
 If Missed Mix ever stops being a demonstration, the `0.0.0.0/0` rule is the first
 thing that has to change, and D1 becomes the better answer again.
+
+## Amendment, 2026-09-02
+
+The "no connection pooling" consequence was read as absolute, and the code took it
+that way: `withDb` opened a connection, ran one query and closed it. A page whose
+loaders each called it paid the handshake once per loader.
+
+Only pooling *across requests* is actually forbidden. Within a request the socket
+belongs to the live I/O context and is reusable, so `workers/app.ts` now opens one
+session per request and `withDb` shares it through an `AsyncLocalStorage`. Measured
+on production beforehand: 0.15 s for a page with no database call, 0.52 s with one,
+0.60 s with two, 0.85 s with three. The slope of that line was the handshake, paid
+again and again inside a single request.
+
+Nothing else changed. Call sites still call `withDb(env, run)`, and one called
+outside a request still opens and closes its own connection.
+
+The Durable Object plan stands, and now buys less: it would remove the one
+remaining handshake per request rather than three or four of them. That makes it a
+stage 8 improvement rather than a latency fix the app is waiting on.

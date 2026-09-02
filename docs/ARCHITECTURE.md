@@ -118,6 +118,34 @@ deliberate: the index was found missing on 2026-08-31 and two accounts had alrea
 taken the same username. An invariant the code depends on should not live only in a
 script somebody remembered to run.
 
+## Database connections
+
+A `MongoClient` cannot outlive the request that opened it, because the Workers
+runtime ties open sockets to the I/O context that created them
+([ADR 0009](adr/0009-mongodb-atlas-over-d1.md)). It can, however, be shared inside
+one. `workers/app.ts` opens a session before the router runs and closes it in
+`ctx.waitUntil` afterwards, so teardown is off the critical path. `app/lib/mongo.ts`
+holds that session in an `AsyncLocalStorage`, and `withDb` reads it from there.
+
+The store is what keeps this out of every call site. A connection threaded through
+arguments would have to reach every loader, action and helper, and each one would
+gain a parameter it does not otherwise need. Instead `withDb(env, run)` is unchanged
+everywhere it is called, and picks the connection up from the ambient session.
+
+Called with no session — a script, or a test — `withDb` opens its own connection and
+closes it, so nothing depends on being inside a request to work.
+
+The session caches the *promise*, not the resolved handle. Loaders on one page run
+in parallel, so two of them arriving while the first handshake is still open would
+otherwise each start one. Awaiting a shared promise means the second waits for the
+first rather than racing it.
+
+This is measurable. Before the change, a page's response time rose with the number
+of `withDb` calls in it: the landing page (none) answered in 0.15 s, `/profile`
+(one) in 0.52 s, and `/mixers/:username` (three) in 0.85 s. After it, a
+three-read page costs about what a one-read page costs, and the remaining
+difference is round trips over an open socket rather than new handshakes.
+
 ## Signed-in shell
 
 `routes/signed-in.tsx` is a layout route wrapping `/profile`, `/mixers` and
@@ -128,10 +156,11 @@ with the main navigation.
 The navigation only renders once a profile exists. Registration lands on `/profile`
 with an empty form, and there is nothing useful to browse until it is filled in.
 
-The profile read lives in the layout rather than in each page because every call to
-`withDb` opens a fresh connection ([ADR 0009](adr/0009-mongodb-atlas-over-d1.md)).
-Two loaders reading the same profile would pay two handshakes, so the child routes
-read the parent's data through `useRouteLoaderData` instead.
+The profile read lives in the layout rather than in each page so the same document
+is not fetched twice: child routes read the parent's data through
+`useRouteLoaderData`. Those reads share one connection either way (see
+[Database connections](#database-connections)), but a second read is still a
+second round trip.
 
 ## Music data
 

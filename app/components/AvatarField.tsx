@@ -21,14 +21,14 @@ export function AvatarField({
   const src = preview ?? saved;
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
       {src ? (
         <img src={src} alt="" className="size-24 shrink-0 rounded-full object-cover" />
       ) : (
         <span className="size-24 shrink-0 rounded-full bg-raised" />
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex w-full min-w-0 flex-col gap-2">
         <label htmlFor="avatar" className="text-sm font-bold tracking-tight">
           {label}
         </label>
@@ -42,7 +42,7 @@ export function AvatarField({
             const file = event.target.files?.[0];
             setPreview(file ? URL.createObjectURL(file) : null);
           }}
-          className="text-sm text-muted file:mr-4 file:rounded-pill file:border-0 file:bg-accent file:px-5 file:py-2 file:font-bold file:text-on-accent"
+          className="w-full min-w-0 text-sm text-muted file:mr-4 file:rounded-pill file:border-0 file:bg-accent file:px-5 file:py-2 file:font-bold file:text-on-accent"
         />
         {error ? (
           <p id="avatar-error" className="text-sm text-danger">
