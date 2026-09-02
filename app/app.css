@@ -32,18 +32,16 @@
     --dock-size: 3.25rem;
     --dock-gap: 0.65rem;
     --dock-right: 1.25rem;
-    --dock-base: 1.25rem;
-    --dock-top: 5.5rem;
+
+    /* Measured rather than guessed: the signed-in header is 138px tall below
+       40rem, where the navigation wraps onto its own row, and 86px above it. */
+    --dock-top: 9.25rem;
   }
 
   .launcher {
     position: fixed;
     right: var(--dock-right);
-    bottom: calc(
-      var(--dock-base) +
-      var(--launcher-order, 0) *
-      (var(--dock-size) + var(--dock-gap))
-    );
+    top: calc(var(--dock-top) + var(--launcher-order, 0) * (var(--dock-size) + var(--dock-gap)));
     z-index: 55;
     display: grid;
     place-items: center;
@@ -60,12 +58,9 @@
       box-shadow 0.28s var(--ease-expand);
   }
 
-  /* The signed-in header wraps to two rows below this width, so the dock stays
-     out of its way at the bottom and moves up beside it once it is one row. */
   @media (width >= 40rem) {
-    .launcher {
-      top: calc(var(--dock-top) + var(--launcher-order, 0) * (var(--dock-size) + var(--dock-gap)));
-      bottom: auto;
+    :root {
+      --dock-top: 5.5rem;
     }
   }
 

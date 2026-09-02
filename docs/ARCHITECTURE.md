@@ -169,6 +169,15 @@ built on, the other links to the author's site. They exist because this app is a
 portfolio piece, and a reviewer arriving on it should be able to see the decisions
 without cloning the repository.
 
+They sit top right at both sizes, and the only thing that changes is how far down.
+The signed-in header is 138px tall below 40rem, because the navigation wraps onto
+its own row, and 86px above it, so `--dock-top` steps from 9.25rem to 5.5rem at
+that breakpoint. Both numbers are measured, not estimated. One consequence is
+accepted deliberately: the logged-out header is only 68px, so on a phone the
+bubbles sit lower than that page needs. Keying the offset to whether the
+navigation is present would cost a class on the layout for a gap nobody reads as
+wrong.
+
 The sheet is a native `<dialog>` opened with `showModal()`, which supplies focus
 trapping, Escape to close and an inert background for free. Backdrop dismissal is a
 native listener rather than a React `onClick`, because it is a behaviour of the
