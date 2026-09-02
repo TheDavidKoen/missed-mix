@@ -12,7 +12,7 @@ export const LANDING = {
       title: "Build a profile",
       body: "Basic info and your favourite artists, albums and songs.",
       detail:
-        "You pick the artists and tracks yourself. Share as much or as little else as you want to.",
+        "You pick the artists and tracks yourself. Share as much or as little as you want to.",
     },
     {
       title: "See who else is here",
