@@ -34,7 +34,7 @@ export function MusicPicker({
   const size = featured ? "size-20 sm:size-28" : "size-14";
 
   return (
-    <div className="rounded-2xl bg-raised p-5">
+    <div className="min-w-0 rounded-2xl bg-raised p-4 sm:p-5">
       {label ? (
         <p className={`font-bold tracking-tight ${featured ? "text-lg" : "text-sm"}`}>{label}</p>
       ) : null}
@@ -42,7 +42,7 @@ export function MusicPicker({
       <input type="hidden" name={name} value={selected ? JSON.stringify(selected) : ""} />
 
       {selected ? (
-        <div className="mt-4 flex items-center gap-4">
+        <div className="mt-4 flex min-w-0 items-center gap-3 sm:gap-4">
           {selected.image ? (
             <img
               src={selected.image}
@@ -97,7 +97,7 @@ export function MusicPicker({
                     ) : (
                       <span className="size-10 shrink-0 rounded-lg bg-surface" />
                     )}
-                    <span className="min-w-0">
+                    <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-bold">{result.name}</span>
                       {result.artist ? (
                         <span className="block truncate text-xs text-muted">{result.artist}</span>
