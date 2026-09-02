@@ -29,24 +29,24 @@ export default function Mixers({ loaderData }: Route.ComponentProps) {
       {profiles.length === 0 ? (
         <p className="mt-10 rounded-2xl bg-raised p-6 text-sm text-muted">{MIXERS.empty}</p>
       ) : (
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2">
+        <ul className="mt-10 grid min-w-0 gap-4 sm:grid-cols-2">
           {profiles.map((profile) => {
             const song = profile.picks?.currentSong ?? null;
 
             return (
-              <li key={profile.usernameLower}>
+              <li key={profile.usernameLower} className="min-w-0">
                 <Link
                   to={`/mixers/${profile.usernameLower}`}
-                  className="flex h-full items-center gap-4 rounded-3xl bg-surface p-5 transition-colors hover:bg-raised-hover"
+                  className="flex h-full min-w-0 items-center gap-3 rounded-3xl bg-surface p-4 transition-colors hover:bg-raised-hover sm:gap-4 sm:p-5"
                 >
                   {profile.avatarUpdatedAt ? (
                     <img
                       src={`/avatar/${profile.usernameLower}?v=${new Date(profile.avatarUpdatedAt).getTime()}`}
                       alt=""
-                      className="size-16 shrink-0 rounded-full object-cover"
+                      className="size-14 shrink-0 rounded-full object-cover sm:size-16"
                     />
                   ) : (
-                    <span className="size-16 shrink-0 rounded-full bg-raised" />
+                    <span className="size-14 shrink-0 rounded-full bg-raised sm:size-16" />
                   )}
 
                   <span className="min-w-0 flex-1">
@@ -64,7 +64,7 @@ export default function Mixers({ loaderData }: Route.ComponentProps) {
                             loading="lazy"
                           />
                         ) : null}
-                        <span className="min-w-0">
+                        <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-bold">{song.name}</span>
                           <span className="block truncate text-xs text-muted">{song.artist}</span>
                         </span>

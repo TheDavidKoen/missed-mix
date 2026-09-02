@@ -41,26 +41,30 @@ export function MusicPicker({
 
       <input type="hidden" name={name} value={selected ? JSON.stringify(selected) : ""} />
 
+      {/* The selected row is a column until sm, so the button drops below the name
+          instead of competing with it for a narrow row. */}
       {selected ? (
-        <div className="mt-4 flex min-w-0 items-center gap-3 sm:gap-4">
-          {selected.image ? (
-            <img
-              src={selected.image}
-              alt=""
-              className={`${size} shrink-0 rounded-xl object-cover`}
-              loading="lazy"
-            />
-          ) : null}
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-bold">{selected.name}</p>
-            {selected.artist ? (
-              <p className="truncate text-sm text-muted">{selected.artist}</p>
+        <div className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex min-w-0 items-center gap-3 sm:flex-1">
+            {selected.image ? (
+              <img
+                src={selected.image}
+                alt=""
+                className={`${size} shrink-0 rounded-xl object-cover`}
+                loading="lazy"
+              />
             ) : null}
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-bold">{selected.name}</p>
+              {selected.artist ? (
+                <p className="truncate text-sm text-muted">{selected.artist}</p>
+              ) : null}
+            </div>
           </div>
           <button
             type="button"
             onClick={() => setSelected(null)}
-            className="shrink-0 rounded-pill border border-line px-3 py-1 text-sm hover:border-ink"
+            className="shrink-0 self-start rounded-pill border border-line px-4 py-1.5 text-sm hover:border-ink sm:self-auto sm:px-3 sm:py-1"
           >
             Change
           </button>

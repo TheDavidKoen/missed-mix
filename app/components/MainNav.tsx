@@ -10,7 +10,7 @@ export function MainNav({ ready, unread }: { ready: boolean; unread: number }) {
 
       {ready ? (
         <nav aria-label="Main" className="order-last w-full sm:order-none sm:w-auto">
-          <ul className="flex gap-1">
+          <ul className="flex flex-wrap gap-1">
             {NAV.map((item) => (
               <li key={item.to}>
                 <NavLink
