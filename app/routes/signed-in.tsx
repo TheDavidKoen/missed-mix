@@ -2,8 +2,8 @@ import { Outlet, redirect } from "react-router";
 
 import { MainNav } from "~/components/MainNav";
 import { cloudflareContext } from "~/lib/context";
-import { readProfile } from "~/lib/profile";
 import { currentUsername } from "~/lib/session";
+import { readShell } from "~/lib/shell";
 import type { Route } from "./+types/signed-in";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -11,14 +11,14 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const username = await currentUsername(request, env);
   if (!username) throw redirect("/login");
 
-  const profile = await readProfile(env, username.toLowerCase());
-  return { username, profile };
+  const { profile, unread } = await readShell(env, username.toLowerCase());
+  return { username, profile, unread };
 }
 
 export default function SignedIn({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex min-h-full flex-col">
-      <MainNav ready={Boolean(loaderData.profile)} />
+      <MainNav ready={Boolean(loaderData.profile)} unread={loaderData.unread} />
       <Outlet />
     </div>
   );

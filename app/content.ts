@@ -6,19 +6,19 @@ export const SITE = {
 export const LANDING = {
   headline: "Someone out there has your playlist.",
   standfirst:
-    "Missed Mix matches people on what they listen to. Build a profile, find the overlap, send a vibration.",
+    "Missed Mix matches people on what they listen to. Build a profile, send a vibration.",
   steps: [
     {
       title: "Build a profile",
-      body: "A short bio, a picture, and the artists you actually listen to.",
+      body: "Basic info and your favourite artists, albums and songs.",
       detail:
-        "You pick the artists and tracks yourself, so matching runs on what you chose rather than on whatever could be scraped from your listening history. Share as much or as little else as you want to.",
+        "You pick the artists and tracks yourself. Share as much or as little else as you want to.",
     },
     {
       title: "See who else is here",
-      body: "Everyone else on Missed Mix, and the six things they picked.",
+      body: "Everyone else on Missed Mix, and their profiles.",
       detail:
-        "You see the six answers everyone else gave, side by side with your own. Read what somebody listens to and decide for yourself whether you want to reach out, rather than trusting a number that claims to know.",
+        "Read what somebody listens to and decide for yourself whether you want to reach out.",
     },
     {
       title: "Send a vibration",
@@ -51,8 +51,8 @@ export const AUTH = {
     password: "Password",
   },
   passwordHint: "At least 10 characters.",
-  demoNotice:
-    "Missed Mix is a portfolio demonstration, not a real service. Accounts here are throwaway and everything in them is disposable. Never reuse a password you use anywhere else.",
+  disclosure:
+    "Missed Mix is a portfolio demonstration, not a real service. Accounts here are throwaway and everything in them is disposable.",
 } as const;
 
 export const PROFILE = {
@@ -81,23 +81,30 @@ export type PickKey = (typeof PROMPTS)[number]["key"];
 
 export const MIXERS = {
   heading: "Mixers",
-  standfirst: "Everyone else on Missed Mix. Open a profile to see all six answers.",
+  standfirst: "Everyone else on Missed Mix.",
   empty: "Nobody else has built a profile yet.",
-  nowPlaying: "Listening to",
   noSong: "No song picked yet",
 } as const;
 
 export const VIBRATION = {
   send: "Send a vibration",
-  prompt: "Send them a song",
+  prompt: "",
   hint: "A vibration is a nudge with a song attached. They see it before deciding whether to reply.",
-  submit: "Send it",
+  submit: "Send vibe",
   sent: "Vibration sent.",
   already: "You have already sent this person a vibration.",
   needSong: "Pick a song first.",
+  accept: "Accept vibration",
+  acceptHint: "They sent you this song. Accepting opens a conversation between you.",
+  accepted: "Accepted. Your conversation is open.",
+  openChat: "Open conversation",
   heading: "Vibrations",
   standfirst: "Nudges people have sent you, each with a song attached.",
   empty: "Nothing yet. Send one from Mixers and see who sends back.",
+  pendingHeading: "Waiting for you",
+  openHeading: "Conversations",
+  messagePlaceholder: "Write a message",
+  messageSubmit: "Send",
 } as const;
 
 export const NAV = [

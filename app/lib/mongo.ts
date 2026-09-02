@@ -121,6 +121,8 @@ export type Vibration = {
   status: "pending" | "accepted" | "declined";
   createdAt: Date;
   respondedAt: Date | null;
+  senderReadAt: Date | null;
+  recipientReadAt: Date | null;
 };
 
 export function vibrations(db: Db): Collection<Vibration> {
@@ -138,4 +140,25 @@ export async function ensureVibrationIndexes(db: Db) {
   );
 
   vibrationIndexesEnsured = true;
+}
+
+export type Message = {
+  pairKey: string;
+  fromUsernameLower: string;
+  body: string;
+  createdAt: Date;
+};
+
+export function messages(db: Db): Collection<Message> {
+  return db.collection<Message>("messages");
+}
+
+let messageIndexesEnsured = false;
+
+export async function ensureMessageIndexes(db: Db) {
+  if (messageIndexesEnsured) return;
+
+  await messages(db).createIndex({ pairKey: 1, createdAt: 1 }, { name: "message_pair_created" });
+
+  messageIndexesEnsured = true;
 }

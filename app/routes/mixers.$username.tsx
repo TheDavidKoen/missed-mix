@@ -7,7 +7,7 @@ import { cloudflareContext } from "~/lib/context";
 import { readPublicProfile } from "~/lib/profile";
 import { currentUsername } from "~/lib/session";
 import { pickSchema } from "~/lib/spotify";
-import { sendVibration, vibrationBetween } from "~/lib/vibrations";
+import { acceptVibration, sendVibration, vibrationsWith } from "~/lib/vibrations";
 import type { Route } from "./+types/mixers.$username";
 
 export function meta({ params }: Route.MetaArgs) {
@@ -25,7 +25,8 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
   const profile = await readPublicProfile(env, target);
   if (!profile) throw new Response("Not found", { status: 404 });
 
-  return { profile, existing: await vibrationBetween(env, username.toLowerCase(), target) };
+  const { sent, received } = await vibrationsWith(env, username.toLowerCase(), target);
+  return { profile, sent, received };
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
@@ -33,7 +34,17 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const username = await currentUsername(request, env);
   if (!username) throw redirect("/login");
 
-  const raw = (await request.formData()).get("song");
+  const form = await request.formData();
+  const target = params.username.toLowerCase();
+
+  if (form.get("intent") === "accept") {
+    const outcome = await acceptVibration(env, username.toLowerCase(), target);
+    return outcome === "accepted"
+      ? { error: null }
+      : { error: "That vibration is no longer waiting." };
+  }
+
+  const raw = form.get("song");
   if (typeof raw !== "string" || raw === "") return { error: VIBRATION.needSong };
 
   let parsed: unknown;
@@ -46,12 +57,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const song = pickSchema.safeParse(parsed);
   if (!song.success) return { error: VIBRATION.needSong };
 
-  const outcome = await sendVibration(
-    env,
-    username.toLowerCase(),
-    params.username.toLowerCase(),
-    song.data,
-  );
+  const outcome = await sendVibration(env, username.toLowerCase(), target, song.data);
 
   if (outcome === "already-sent") return { error: VIBRATION.already };
   if (outcome !== "sent") return { error: "That profile is no longer available." };
@@ -60,10 +66,12 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 }
 
 export default function MixerProfile({ loaderData, actionData }: Route.ComponentProps) {
-  const { profile, existing } = loaderData;
+  const { profile, sent, received } = loaderData;
   const featured = PROMPTS.filter((prompt) => prompt.kind !== "artist");
   const artists = PROMPTS.filter((prompt) => prompt.kind === "artist");
-  const sent = existing !== null || actionData?.error === null;
+  const alreadySent = sent !== null;
+  const waiting = received?.status === "pending";
+  const open = received?.status === "accepted" || sent?.status === "accepted";
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 pb-16">
@@ -115,17 +123,59 @@ export default function MixerProfile({ loaderData, actionData }: Route.Component
       </section>
 
       <section className="mt-12 rounded-3xl bg-surface p-6 sm:p-8">
-        <h2 className="text-lg font-black tracking-tight">{VIBRATION.send}</h2>
+        {open ? (
+          <>
+            <h2 className="text-lg font-black tracking-tight">{VIBRATION.accepted}</h2>
+            <PillLink to={`/vibrations/${profile.usernameLower}`} className="mt-5">
+              {VIBRATION.openChat}
+            </PillLink>
+          </>
+        ) : waiting ? (
+          <>
+            <h2 className="text-lg font-black tracking-tight">{VIBRATION.accept}</h2>
+            <p className="mt-2 text-sm text-muted">{VIBRATION.acceptHint}</p>
 
-        {sent ? (
-          <p
-            role="status"
-            className="mt-4 rounded-xl bg-accent px-4 py-3 text-sm font-bold text-on-accent"
-          >
-            {VIBRATION.sent}
-          </p>
+            {received?.song ? (
+              <div className="mt-5 flex items-center gap-4 rounded-2xl bg-raised p-4">
+                {received.song.image ? (
+                  <img
+                    src={received.song.image}
+                    alt=""
+                    className="size-16 shrink-0 rounded-xl object-cover"
+                    loading="lazy"
+                  />
+                ) : null}
+                <div className="min-w-0">
+                  <p className="truncate font-bold">{received.song.name}</p>
+                  <p className="truncate text-sm text-muted">{received.song.artist}</p>
+                </div>
+              </div>
+            ) : null}
+
+            {actionData?.error ? (
+              <p role="alert" className="mt-4 text-sm text-danger">
+                {actionData.error}
+              </p>
+            ) : null}
+
+            <Form method="post" className="mt-5">
+              <input type="hidden" name="intent" value="accept" />
+              <PillButton type="submit">{VIBRATION.accept}</PillButton>
+            </Form>
+          </>
+        ) : alreadySent ? (
+          <>
+            <h2 className="text-lg font-black tracking-tight">{VIBRATION.send}</h2>
+            <p
+              role="status"
+              className="mt-4 rounded-xl bg-accent px-4 py-3 text-sm font-bold text-on-accent"
+            >
+              {VIBRATION.sent}
+            </p>
+          </>
         ) : (
           <>
+            <h2 className="text-lg font-black tracking-tight">{VIBRATION.send}</h2>
             <p className="mt-2 text-sm text-muted">{VIBRATION.hint}</p>
 
             {actionData?.error ? (

@@ -25,10 +25,6 @@ export const profileSchema = z.object({
 
 export type ProfileInput = z.infer<typeof profileSchema>;
 
-export async function readProfile(env: Env, usernameLower: string) {
-  return withDb(env, (db) => profiles(db).findOne({ usernameLower }));
-}
-
 export async function saveProfile(
   env: Env,
   usernameLower: string,
