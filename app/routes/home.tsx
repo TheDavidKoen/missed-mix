@@ -9,11 +9,8 @@ export function meta() {
 export default function Home() {
   return (
     <div className="flex min-h-full flex-col">
-      <header className="flex items-center justify-between px-6 py-5 sm:px-10">
+      <header className="px-6 py-5 sm:px-10">
         <Wordmark className="text-xl" />
-        <PillLink to="/login" variant="secondary" className="px-6 py-2 text-sm">
-          Log in
-        </PillLink>
       </header>
 
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center sm:px-10">
