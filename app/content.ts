@@ -155,8 +155,8 @@ export const STACK: readonly StackEntry[] = [
     adr: "0009-mongodb-atlas-over-d1",
   },
   {
-    layer: "Safety",
-    choice: "Checked at the door",
+    layer: "Validation",
+    choice: "Zod",
     logo: "/zod.svg",
     why: "Nothing sent to this app is trusted until it has been checked against the shape it is supposed to be. That covers what you type, what is in the address bar, and what other companies' services send back.",
     adr: null,

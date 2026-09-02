@@ -33,9 +33,12 @@
     --dock-gap: 0.65rem;
     --dock-right: 1.25rem;
 
-    /* Measured rather than guessed: the signed-in header is 138px tall below
-       40rem, where the navigation wraps onto its own row, and 86px above it. */
-    --dock-top: 9.25rem;
+    /* Measured rather than guessed. Below 40rem the navigation wraps onto its
+       own row, ending at 118px, and the header's padding runs to 138px; the dock
+       tucks against the navigation rather than the padding. It cannot go higher:
+       the nav pills reach x=294 at every width, so at 360px a bubble placed
+       level with them would overlap by 6px, and by 46px at 320px. */
+    --dock-top: 7.5rem;
   }
 
   .launcher {
