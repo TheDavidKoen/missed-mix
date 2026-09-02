@@ -101,7 +101,7 @@ export default function MixerProfile({ loaderData, actionData }: Route.Component
 
       <section className="mt-10">
         <h2 className="text-lg font-black tracking-tight">Their two highlights</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2">
           {featured.map((prompt) => (
             <PickTile
               key={prompt.key}
@@ -115,7 +115,7 @@ export default function MixerProfile({ loaderData, actionData }: Route.Component
 
       <section className="mt-8">
         <h2 className="text-lg font-black tracking-tight">Four artists</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2">
           {artists.map((prompt) => (
             <PickTile key={prompt.key} label={prompt.label} pick={profile.picks?.[prompt.key]} />
           ))}
@@ -145,7 +145,7 @@ export default function MixerProfile({ loaderData, actionData }: Route.Component
                     loading="lazy"
                   />
                 ) : null}
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="truncate font-bold">{received.song.name}</p>
                   <p className="truncate text-sm text-muted">{received.song.artist}</p>
                 </div>
@@ -207,11 +207,11 @@ function PickTile({
   big?: boolean;
 }) {
   return (
-    <div className="rounded-2xl bg-raised p-5">
+    <div className="min-w-0 rounded-2xl bg-raised p-4 sm:p-5">
       <p className={`font-bold tracking-tight ${big ? "text-base" : "text-sm"}`}>{label}</p>
 
       {pick ? (
-        <div className="mt-4 flex items-center gap-4">
+        <div className="mt-4 flex min-w-0 items-center gap-3 sm:gap-4">
           {pick.image ? (
             <img
               src={pick.image}
@@ -220,7 +220,7 @@ function PickTile({
               loading="lazy"
             />
           ) : null}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate font-bold">{pick.name}</p>
             {pick.artist ? <p className="truncate text-sm text-muted">{pick.artist}</p> : null}
           </div>

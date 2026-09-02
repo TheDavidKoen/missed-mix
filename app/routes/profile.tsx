@@ -136,7 +136,7 @@ export default function Profile({ actionData }: Route.ComponentProps) {
 
         <section>
           <h2 className="text-lg font-black tracking-tight">{PROFILE.featuredHeading}</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2">
             {featured.map((prompt) => (
               <MusicPicker
                 key={prompt.key}
@@ -152,7 +152,7 @@ export default function Profile({ actionData }: Route.ComponentProps) {
 
         <section>
           <h2 className="text-lg font-black tracking-tight">{PROFILE.promptsHeading}</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2">
             {artists.map((prompt) => (
               <MusicPicker
                 key={prompt.key}
