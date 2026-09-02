@@ -170,13 +170,21 @@ portfolio piece, and a reviewer arriving on it should be able to see the decisio
 without cloning the repository.
 
 They sit top right at both sizes, and the only thing that changes is how far down.
-The signed-in header is 138px tall below 40rem, because the navigation wraps onto
-its own row, and 86px above it, so `--dock-top` steps from 9.25rem to 5.5rem at
-that breakpoint. Both numbers are measured, not estimated. One consequence is
-accepted deliberately: the logged-out header is only 68px, so on a phone the
-bubbles sit lower than that page needs. Keying the offset to whether the
-navigation is present would cost a class on the layout for a gap nobody reads as
-wrong.
+`--dock-top` steps from 7.5rem to 5.5rem at 40rem, and both numbers are measured
+against the rendered pages rather than estimated.
+
+Below 40rem the navigation wraps onto its own row, which ends at 118px, so the dock
+tucks against it rather than against the header's padding at 138px. It cannot sit
+any higher. The three nav pills reach x=294 at every width, and a bubble in the
+right-hand column starts at 288px on a 360px viewport and 248px on a 320px one, so
+level with the navigation it would overlap by 6px and 46px respectively. Above
+40rem the navigation returns to the first row and the header shrinks to 86px, which
+5.5rem clears.
+
+One consequence is accepted deliberately: the logged-out header is only 68px, so on
+a phone the bubbles sit lower than that page alone needs. Keying the offset to
+whether the navigation is present would cost a class on the layout for a gap nobody
+reads as wrong.
 
 The sheet is a native `<dialog>` opened with `showModal()`, which supplies focus
 trapping, Escape to close and an inert background for free. Backdrop dismissal is a
