@@ -47,7 +47,7 @@ because React Router 8 ships no Pages adapter. See
 | Copy | `app/content.ts` | Every user-facing string. |
 | Tokens | `app/app.css` | Colour, type, radius, easing, under `@theme`. |
 
-Route modules stay thin on purpose. `app/routes/login.tsx` is sixteen lines: its
+Route modules stay thin on purpose. `app/routes/login.tsx` is seventeen lines: its
 action calls `submitCredentials` and its component renders `AuthPanel`. All of the
 work, validation, hashing, the Atlas round trip and the session cookie, lives in
 `app/lib/`, so the route file did not grow when stage 2 landed.
@@ -161,6 +161,33 @@ is not fetched twice: child routes read the parent's data through
 `useRouteLoaderData`. Those reads share one connection either way (see
 [Database connections](#database-connections)), but a second read is still a
 second round trip.
+
+## Portfolio dock
+
+Two fixed bubbles sit in one column: one opens a sheet describing what the app is
+built on, the other links to the author's site. They exist because this app is a
+portfolio piece, and a reviewer arriving on it should be able to see the decisions
+without cloning the repository.
+
+The sheet is a native `<dialog>` opened with `showModal()`, which supplies focus
+trapping, Escape to close and an inert background for free. Backdrop dismissal is a
+native listener rather than a React `onClick`, because it is a behaviour of the
+element and its keyboard equivalent is the Escape key the browser already handles.
+As a JSX handler it is also a click on a non-interactive element with no keyboard
+path, which the linter is right to reject.
+
+Its contents live in `app/content.ts` alongside every other user-facing string, so
+the stack description is data rather than markup, and each row can point at the ADR
+that argued for it.
+
+The marks are masked rather than embedded, so the file in `public/` stays the single
+source of the shape and CSS sets the colour. The author's own mark is an `<img>`
+instead, because masking would flatten its three colours into one.
+
+The dock renders on every page, including conversations. Outbound clicks carry only
+the origin and never the path, because the edge sets
+`Referrer-Policy: strict-origin-when-cross-origin`, so a conversation URL and the
+username in it never reach the linked site.
 
 ## Music data
 

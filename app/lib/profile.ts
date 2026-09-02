@@ -23,7 +23,7 @@ export const profileSchema = z.object({
   }),
 });
 
-export type ProfileInput = z.infer<typeof profileSchema>;
+type ProfileInput = z.infer<typeof profileSchema>;
 
 export async function saveProfile(
   env: Env,

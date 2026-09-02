@@ -23,7 +23,7 @@ const SIGNATURES = [
   },
 ];
 
-export type AvatarError = "too-large" | "not-an-image";
+type AvatarError = "too-large" | "not-an-image";
 
 export async function storeAvatar(
   env: Env,

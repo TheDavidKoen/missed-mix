@@ -95,23 +95,31 @@ response headers and asset serving as they ship.
 
 ```text
 app/
-├── components/     UI components, one concern each
-│   ├── AuthPanel   Sign-in and registration form
-│   ├── Field       One labelled control, shared by every form
-│   ├── MusicPicker Spotify search and selection
-│   ├── Pill        Buttons and links
-│   └── Wordmark    The product name
-├── lib/            Boundary logic. No JSX
-│   ├── auth        Credential schemas, registration, sign-in
-│   ├── avatar      Upload validation and storage
-│   ├── context     Carries env from the worker into loaders
-│   ├── form        Zod errors to field errors
-│   ├── mongo       Client, collections, index assertions
-│   ├── password    PBKDF2 hashing and verification
-│   ├── profile     Profile schema and store
-│   ├── rate-limit  In-isolate request budgets
-│   ├── session     Signed cookie sessions
-│   └── spotify     Client Credentials token and search
+├── components/       UI components, one concern each
+│   ├── AuthPanel     Sign-in and registration form
+│   ├── AvatarField   Avatar upload with a live preview
+│   ├── Field         One labelled control, shared by every form
+│   ├── MainNav       Signed-in navigation and the unread badge
+│   ├── MusicPicker   Spotify search and selection
+│   ├── PickTile      One answered prompt, read only
+│   ├── Pill          Buttons and links
+│   ├── SiteBubble    Dock bubble linking to the author's site
+│   ├── StackBubble   Dock bubble opening the stack sheet
+│   ├── VibrationPanel  The four states of one pair
+│   └── Wordmark      The product name
+├── lib/              Boundary logic. No JSX
+│   ├── auth          Credential schemas, registration, sign-in
+│   ├── avatar        Upload validation and storage
+│   ├── context       Carries env from the worker into loaders
+│   ├── form          Zod errors to field errors
+│   ├── mongo         Request-scoped connection, collections, indexes
+│   ├── password      PBKDF2 hashing and verification
+│   ├── profile       Profile schema and store
+│   ├── rate-limit    In-isolate request budgets
+│   ├── session       Signed cookie sessions
+│   ├── shell         One read for the signed-in layout
+│   ├── spotify       Client Credentials token and search
+│   └── vibrations    Sending, accepting, conversations
 ├── routes/         Route modules, one file per URL
 ├── content.ts      All user-facing copy
 ├── app.css         Design tokens in @theme
@@ -271,6 +279,14 @@ The token needs only **Account → Cloudflare Pages → Edit**.
 scripts by default and only warns. `esbuild` and `workerd` both need theirs to
 fetch platform binaries, so `pnpm-workspace.yaml` sets `allowBuilds` for both. A
 clone that skips this fails at build time, not install time.
+
+**Do not run `pnpm dev` and `pnpm preview` at the same time.** They are separate
+servers on 5173 and 8788, so leaving both up looks harmless, but they share
+`node_modules`. A build rewrites Vite's pre-bundled dependency cache underneath the
+running dev server, which then asks for a hashed file that no longer exists and
+shows `The file does not exist at node_modules/.vite/deps_ssr/...` as a full-screen
+overlay. Nothing is wrong with the source. Stop the server, `rm -rf node_modules/.vite`
+and start it again; the directory is a cache and rebuilds itself.
 
 **The Vite dev server cannot load the mongodb driver.** A request that reaches
 Atlas fails with `Calling require for "punycode/" in an environment that doesn't
