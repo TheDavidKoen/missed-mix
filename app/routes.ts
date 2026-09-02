@@ -11,6 +11,7 @@ export default [
     route("mixers", "routes/mixers.tsx"),
     route("mixers/:username", "routes/mixers.$username.tsx"),
     route("vibrations", "routes/vibrations.tsx"),
+    route("vibrations/:username", "routes/vibrations.$username.tsx"),
   ]),
 
   route("api/search", "routes/api.search.tsx"),

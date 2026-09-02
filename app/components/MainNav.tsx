@@ -3,7 +3,7 @@ import { NAV } from "~/content";
 import { PillButton } from "./Pill";
 import { Wordmark } from "./Wordmark";
 
-export function MainNav({ ready }: { ready: boolean }) {
+export function MainNav({ ready, unread }: { ready: boolean; unread: number }) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-4 px-6 py-5 sm:px-10">
       <Wordmark className="text-xl" />
@@ -16,12 +16,21 @@ export function MainNav({ ready }: { ready: boolean }) {
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
-                    `inline-flex rounded-pill px-4 py-2 text-sm font-bold tracking-tight transition-colors ${
+                    `inline-flex items-center gap-2 rounded-pill px-4 py-2 text-sm font-bold tracking-tight transition-colors ${
                       isActive ? "bg-raised text-ink" : "text-muted hover:text-ink"
                     }`
                   }
                 >
                   {item.label}
+                  {item.to === "/vibrations" && unread > 0 ? (
+                    <span
+                      role="status"
+                      aria-label={`${unread} new`}
+                      className="inline-flex min-w-5 items-center justify-center rounded-pill bg-accent px-1.5 text-xs font-black text-on-accent"
+                    >
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  ) : null}
                 </NavLink>
               </li>
             ))}

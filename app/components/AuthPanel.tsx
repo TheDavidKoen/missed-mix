@@ -64,7 +64,7 @@ export function AuthPanel({ intent, result }: { intent: AuthIntent; result?: Aut
         </p>
       </section>
 
-      <p className="mt-8 max-w-md text-center text-xs text-muted">{AUTH.demoNotice}</p>
+      <p className="mt-8 max-w-md text-center text-xs text-muted">{AUTH.disclosure}</p>
     </main>
   );
 }

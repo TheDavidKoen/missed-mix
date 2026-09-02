@@ -24,7 +24,7 @@ Username and password. No email address, no OAuth, no third-party identity.
 Registration takes exactly two fields.
 
 The auth pages carry a standing notice that this is a portfolio demonstration and
-that no password used elsewhere should be entered.
+that accounts on it are throwaway.
 
 ## Rationale
 
@@ -95,9 +95,12 @@ use **5,000 iterations**, which measures around 7 ms and leaves headroom for
 rendering a failed sign-in, and to be explicit that this is weak.
 
 What makes it defensible here and nowhere else: every account is disposable, no
-email address is collected, nothing stored is real, and the auth pages tell every
-visitor not to reuse a password. What would make it indefensible: this app
-becoming a real service without this line changing first.
+email address is collected, and nothing stored is real. The auth pages say plainly
+that this is a demonstration and that accounts are throwaway. An earlier version
+also told visitors never to reuse a password; that sentence was removed on
+2026-09-01, so the warning is now implicit in "not a real service" rather than
+explicit. What would make this indefensible: the app becoming a real service
+without this line changing first.
 
 One thing keeps the door open: the iteration count is stored inside each hash
 string rather than assumed, so raising it leaves every existing account still able

@@ -35,7 +35,9 @@ export function MusicPicker({
 
   return (
     <div className="rounded-2xl bg-raised p-5">
-      <p className={`font-bold tracking-tight ${featured ? "text-lg" : "text-sm"}`}>{label}</p>
+      {label ? (
+        <p className={`font-bold tracking-tight ${featured ? "text-lg" : "text-sm"}`}>{label}</p>
+      ) : null}
 
       <input type="hidden" name={name} value={selected ? JSON.stringify(selected) : ""} />
 
