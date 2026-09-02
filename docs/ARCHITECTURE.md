@@ -169,22 +169,30 @@ built on, the other links to the author's site. They exist because this app is a
 portfolio piece, and a reviewer arriving on it should be able to see the decisions
 without cloning the repository.
 
-They sit top right at both sizes, and the only thing that changes is how far down.
-`--dock-top` steps from 7.5rem to 5.5rem at 40rem, and both numbers are measured
-against the rendered pages rather than estimated.
+They sit top right everywhere, and the only thing that changes is how far down.
+Below 40rem that depends on what the header actually holds, so the dock is never
+pushed lower than its own page requires:
 
-Below 40rem the navigation wraps onto its own row, which ends at 118px, so the dock
-tucks against it rather than against the header's padding at 138px. It cannot sit
-any higher. The three nav pills reach x=294 at every width, and a bubble in the
+| Header state | Contains | `--dock-top` | First bubble |
+|---|---|---|---|
+| Signed out | Wordmark only, ending at x=125 | 1.25rem | 20px, level with the wordmark |
+| Signed in, no profile | Wordmark and log out, ending at 66px | 4.75rem | 76px |
+| Signed in, with profile | Navigation wraps to its own row, ending at 118px | 7.5rem | 120px |
+
+Above 40rem the navigation returns to the first row, every state shares a header
+86px tall, and one offset of 5.5rem covers all three.
+
+Every number is measured against the rendered pages. The signed-in case cannot go
+higher: the three nav pills reach x=294 at every width, and a bubble in the
 right-hand column starts at 288px on a 360px viewport and 248px on a 320px one, so
-level with the navigation it would overlap by 6px and 46px respectively. Above
-40rem the navigation returns to the first row and the header shrinks to 86px, which
-5.5rem clears.
+level with the navigation it would overlap by 6px and 46px. The signed-out case is
+bounded from below instead, by the hero, which starts at 132px.
 
-One consequence is accepted deliberately: the logged-out header is only 68px, so on
-a phone the bubbles sit lower than that page alone needs. Keying the offset to
-whether the navigation is present would cost a class on the layout for a gap nobody
-reads as wrong.
+The three states are selected with `:has()` rather than a class threaded down from
+the layout. The bubbles are fixed and sit outside the page's element tree, so they
+are not descendants of the header and a class on it could never reach them; the
+only alternative was passing state into the document shell for a purely
+presentational decision.
 
 The sheet is a native `<dialog>` opened with `showModal()`, which supplies focus
 trapping, Escape to close and an inert background for free. Backdrop dismissal is a

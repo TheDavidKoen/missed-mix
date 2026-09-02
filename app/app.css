@@ -33,11 +33,25 @@
     --dock-gap: 0.65rem;
     --dock-right: 1.25rem;
 
-    /* Measured rather than guessed. Below 40rem the navigation wraps onto its
-       own row, ending at 118px, and the header's padding runs to 138px; the dock
-       tucks against the navigation rather than the padding. It cannot go higher:
-       the nav pills reach x=294 at every width, so at 360px a bubble placed
-       level with them would overlap by 6px, and by 46px at 320px. */
+    /* Below 40rem the offset depends on what the header actually holds, so the
+       dock is never lower than it needs to be. Signed out there is only the
+       wordmark, which ends at x=125, leaving the right of that row empty down to
+       the hero at 132px. Signed in there is a log out button ending at 66px, and
+       once a profile exists the navigation wraps onto its own row ending at
+       118px. Each value clears its own case and no more.
+
+       :has keeps this in CSS. The bubbles are fixed and sit outside the layout,
+       so they are not descendants of the header and a class on it could not
+       reach them; the alternative was threading state down to the document
+       shell. */
+    --dock-top: 1.25rem;
+  }
+
+  :root:has([action="/logout"]) {
+    --dock-top: 4.75rem;
+  }
+
+  :root:has(nav[aria-label="Main"]) {
     --dock-top: 7.5rem;
   }
 
@@ -61,8 +75,12 @@
       box-shadow 0.28s var(--ease-expand);
   }
 
+  /* Above 40rem the navigation returns to the first row, so every case shares
+     one header height of 86px and one offset. */
   @media (width >= 40rem) {
-    :root {
+    :root,
+    :root:has([action="/logout"]),
+    :root:has(nav[aria-label="Main"]) {
       --dock-top: 5.5rem;
     }
   }
