@@ -88,6 +88,39 @@ page keeps rendering, and something important is quietly gone:
 Each is asserted against the built output rather than the source, so the check
 fails on what actually ships.
 
+## Server response time
+
+The budget above covers bytes sent to the browser. The other half of a page's cost
+is the time the edge spends before the first byte, and here that is dominated by
+one thing: every connection to Atlas is a fresh TLS handshake, 150 to 350 ms.
+
+Measured on production, response time tracked the number of database calls a route
+made almost exactly:
+
+| Route | Database calls | Response time |
+|---|---|---|
+| `/` | 0 | 0.15 s |
+| `/profile` | 1 | 0.52 s |
+| `/mixers` | 2 | 0.60 s |
+| `/mixers/:username` | 3 | 0.85 s |
+
+Loaders now share one connection per request
+([Architecture](ARCHITECTURE.md#database-connections)), so that slope flattens: a
+route pays one handshake regardless of how many reads it makes. Locally, where the
+hop to Atlas is longer and every figure is higher, `/mixers/:username` went from
+costing 63% more than `/profile` to costing 5% more — the gap between one read and
+three is now round trips over an open socket, not new connections.
+
+Two rules follow, and they are worth keeping in mind when adding a route:
+
+1. **Reads inside one request are cheap; requests are not.** Splitting work across
+   two fetches costs a second handshake. Adding a query to a loader does not.
+2. **Parallel reads are free.** `Promise.all` across the ambient session opens one
+   connection, so there is no reason to sequence independent queries.
+
+This is not asserted in CI. It depends on Atlas and the network between it and the
+edge, so a threshold would fail for reasons unrelated to a change.
+
 ## Lighthouse
 
 CI serves the real Pages bundle through Workerd and audits it three times on the

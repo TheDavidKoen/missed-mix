@@ -31,7 +31,7 @@ export function MusicPicker({
   }, [query, kind, fetcher.load]);
 
   const results = fetcher.data?.results ?? [];
-  const size = featured ? "size-28" : "size-14";
+  const size = featured ? "size-20 sm:size-28" : "size-14";
 
   return (
     <div className="rounded-2xl bg-raised p-5">
@@ -60,7 +60,7 @@ export function MusicPicker({
           <button
             type="button"
             onClick={() => setSelected(null)}
-            className="rounded-pill border border-line px-4 py-1 text-sm hover:border-ink"
+            className="shrink-0 rounded-pill border border-line px-3 py-1 text-sm hover:border-ink"
           >
             Change
           </button>

@@ -1,4 +1,5 @@
-import type { Binary, Collection, Db } from "mongodb";
+import { AsyncLocalStorage } from "node:async_hooks";
+import type { Binary, Collection, Db, MongoClient } from "mongodb";
 
 import type { PickKey } from "~/content";
 import type { MusicPick } from "./spotify";
@@ -10,29 +11,78 @@ export type Account = {
   createdAt: Date;
 };
 
-/* A MongoClient cannot be reused across invocations: the Workers runtime ties
-   open sockets to the I/O context of the request that created them, so a client
-   held in module scope throws on the next request. Every call therefore pays a
-   fresh handshake. That is latency, not CPU, and CPU is the metered resource.
-   See ADR 0009. */
-export async function withDb<T>(env: Env, run: (db: Db) => Promise<T>): Promise<T> {
-  /* Imported here rather than at module scope so the driver is only evaluated on
-     a request that actually reaches the database. React Router loads every route
-     module to build its manifest, so a top-level import would drag the driver
-     into the graph of every page, and under Vite dev that fails: see the punycode
-     note in the README. This keeps the whole UI iterable with `pnpm dev`. */
-  const { MongoClient } = await import("mongodb");
+/* A MongoClient cannot be reused across requests: the Workers runtime ties open
+   sockets to the I/O context that created them, so one held in module scope
+   throws on the next request. It can be reused *within* a request, and that is
+   what this session is for. Every connection is a fresh TLS handshake to Atlas,
+   measured at 150 to 350 ms, so a page whose loaders each opened their own paid
+   that cost several times over. See ADR 0009. */
+class DbSession {
+  private client: MongoClient | null = null;
+  private opening: Promise<Db> | null = null;
 
-  const client = new MongoClient(env.MONGODB_URI, {
-    serverSelectionTimeoutMS: 5_000,
-    connectTimeoutMS: 5_000,
-  });
+  constructor(private readonly env: Env) {}
+
+  db(): Promise<Db> {
+    /* Caching the promise rather than the resolved Db is what makes two loaders
+       running in parallel share one handshake instead of racing into two. */
+    this.opening ??= (async () => {
+      /* Imported here rather than at module scope so the driver is only
+         evaluated on a request that reaches the database. React Router loads
+         every route module to build its manifest, so a top-level import would
+         drag the driver into the graph of every page, and under Vite dev that
+         fails: see the punycode note in the README. */
+      const { MongoClient } = await import("mongodb");
+
+      const client = new MongoClient(this.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 5_000,
+        connectTimeoutMS: 5_000,
+      });
+
+      await client.connect();
+      this.client = client;
+
+      return client.db(this.env.MONGODB_DB);
+    })();
+
+    return this.opening;
+  }
+
+  async close() {
+    if (!this.opening) return;
+
+    try {
+      await this.opening;
+    } catch {
+      /* A failed connection has nothing to close. */
+    }
+
+    await this.client?.close();
+  }
+}
+
+const sessions = new AsyncLocalStorage<DbSession>();
+
+export function beginDbSession(env: Env) {
+  return new DbSession(env);
+}
+
+export function runInDbSession<T>(session: DbSession, run: () => Promise<T>) {
+  return sessions.run(session, run);
+}
+
+export async function withDb<T>(env: Env, run: (db: Db) => Promise<T>): Promise<T> {
+  const session = sessions.getStore();
+  if (session) return run(await session.db());
+
+  /* No session means this was called outside a request, so it owns its own
+     connection and must close it. */
+  const standalone = new DbSession(env);
 
   try {
-    await client.connect();
-    return await run(client.db(env.MONGODB_DB));
+    return await run(await standalone.db());
   } finally {
-    await client.close();
+    await standalone.close();
   }
 }
 
