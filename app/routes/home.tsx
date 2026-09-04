@@ -20,7 +20,7 @@ export default function Home() {
         <p className="mt-6 max-w-xl text-balance text-lg text-muted">{LANDING.standfirst}</p>
 
         <div className="mt-10 flex w-full max-w-sm flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row">
-          <PillLink to="/register">Sign up free</PillLink>
+          <PillLink to="/register">Sign up</PillLink>
           <PillLink to="/login" variant="secondary">
             Log in
           </PillLink>
