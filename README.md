@@ -4,10 +4,6 @@ Missed Mix is a social app that matches people on music taste. You declare what
 you listen to, then you send a
 **vibration** — a nudge the other person can accept before any conversation opens.
 
-[missed-mix.pages.dev](https://missed-mix.pages.dev). Registration and sign-in
-> work. `pnpm dev` cannot reach the database; `pnpm preview` can. See
-> [Two dev servers](#two-dev-servers).
-
 ## Stack
 
 | Layer | Choice |
