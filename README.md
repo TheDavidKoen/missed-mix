@@ -1,15 +1,10 @@
 # missed-mix
 
 Missed Mix is a social app that matches people on music taste. You declare what
-you listen to, the app ranks the profiles closest to yours, and you send a
+you listen to, then you send a
 **vibration** — a nudge the other person can accept before any conversation opens.
 
-Built by **David Koen** as a portfolio piece. The repository is part of the
-deliverable: the branch history, pull requests and decision records are meant to
-be read alongside the running app.
-
-> **Status: in build.** Stage 2 of eleven, live at
-> [missed-mix.pages.dev](https://missed-mix.pages.dev). Registration and sign-in
+[missed-mix.pages.dev](https://missed-mix.pages.dev). Registration and sign-in
 > work. `pnpm dev` cannot reach the database; `pnpm preview` can. See
 > [Two dev servers](#two-dev-servers).
 
