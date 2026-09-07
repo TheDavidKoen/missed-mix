@@ -14,6 +14,7 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 
+import { DockToggle } from "~/components/DockToggle";
 import { SiteBubble } from "~/components/SiteBubble";
 import { StackBubble } from "~/components/StackBubble";
 
@@ -23,7 +24,7 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" data-dock="closed">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -33,6 +34,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </head>
       <body className="h-full bg-canvas font-sans text-ink antialiased">
         {children}
+        <DockToggle />
         <StackBubble />
         <SiteBubble />
         <ScrollRestoration />

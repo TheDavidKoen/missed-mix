@@ -135,7 +135,7 @@ components.
 | Mixers | Every other profile, each showing the song they have marked as current |
 | Vibrations | One per pair, carrying a song. The recipient accepts to open a conversation |
 | Conversations | Private to the two participants, polled while open, with an unread badge |
-| Stack sheet | A dock bubble describing what the app runs on, linking to the records |
+| Dock | A toggle that expands into a stack sheet and a link out, collapsing on Escape or an outside click |
 
 ## Identity
 

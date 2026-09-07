@@ -36,6 +36,7 @@
   :root {
     --dock-size: 3.25rem;
     --dock-gap: 0.65rem;
+    --dock-count: 2;
     --dock-right: 1.25rem;
 
     --dock-top: 1.25rem;
@@ -84,6 +85,30 @@
     box-shadow: 0 10px 24px rgb(0 0 0 / 0.55);
   }
 
+  .launcher--stowable {
+    transition:
+      transform 0.46s var(--ease-spring) calc((var(--launcher-order) - 1) * 0.07s),
+      opacity 0.24s linear calc((var(--launcher-order) - 1) * 0.07s),
+      border-color 0.28s var(--ease-out-quint),
+      box-shadow 0.28s var(--ease-out-quint);
+  }
+
+  .launcher--stowable:hover {
+    transition:
+      transform 0.28s var(--ease-out-quint),
+      border-color 0.28s var(--ease-out-quint),
+      box-shadow 0.28s var(--ease-out-quint);
+  }
+
+  html[data-dock="closed"] .launcher--stowable {
+    transform: translateY(calc(var(--launcher-order) * (var(--dock-size) + var(--dock-gap)) * -1))
+      scale(0.2);
+    opacity: 0;
+    transition:
+      transform 0.3s var(--ease-in-expo) calc((var(--dock-count) - var(--launcher-order)) * 0.05s),
+      opacity 0.2s linear calc((var(--dock-count) - var(--launcher-order)) * 0.05s);
+  }
+
   .launcher__mark {
     width: 1.6rem;
     height: 1.6rem;
@@ -92,6 +117,14 @@
     mask-repeat: no-repeat;
     mask-position: center;
     mask-size: contain;
+  }
+
+  .launcher--toggle .launcher__mark {
+    transition: transform 0.4s var(--ease-spring);
+  }
+
+  .launcher--toggle[aria-expanded="true"] .launcher__mark {
+    transform: rotate(135deg);
   }
 
   .launcher__image {
@@ -148,14 +181,12 @@
     border: 1px solid var(--color-line);
     border-radius: 1rem;
     opacity: 0;
-    transform: translate(var(--sheet-exit-x, 0px), var(--sheet-exit-y, -1.5rem))
-      scale(var(--sheet-exit-scale, 0.06));
-    transform-origin: center;
+    transform: scale(0.92);
     transition:
-      opacity 0.22s var(--ease-in-expo),
-      transform 0.34s var(--ease-in-expo),
-      display 0.34s allow-discrete,
-      overlay 0.34s allow-discrete;
+      opacity 0.16s ease-in,
+      transform 0.18s ease-in,
+      display 0.18s allow-discrete,
+      overlay 0.18s allow-discrete;
   }
 
   .sheet[open] {

@@ -1,26 +1,12 @@
-/* StackBubble.tsx — The dock's first bubble and the stack sheet it opens. The sheet
-   is a native dialog, which supplies focus trapping and Escape to close.
-   storeExitVector measures the gap between the sheet's centre and the bubble's, so
-   the closing transition collapses the sheet back into the bubble it came from. */
+/* StackBubble.tsx — A stowed dock bubble and the stack sheet it opens. The sheet is a
+   native dialog, which supplies focus trapping and Escape to close; the click
+   listener adds dismissal by backdrop, whose target is the dialog itself. */
 
 import { useEffect, useRef, useState } from "react";
 
 import { DOCK, STACK } from "~/content";
 
 const ADR_BASE = "https://github.com/TheDavidKoen/missed-mix/blob/main/docs/adr";
-const EXIT_SCALE = 0.06;
-
-function storeExitVector(dialog: HTMLDialogElement, bubble: HTMLElement) {
-  const sheetBox = dialog.getBoundingClientRect();
-  const bubbleBox = bubble.getBoundingClientRect();
-
-  const x = bubbleBox.left + bubbleBox.width / 2 - (sheetBox.left + sheetBox.width / 2);
-  const y = bubbleBox.top + bubbleBox.height / 2 - (sheetBox.top + sheetBox.height / 2);
-
-  dialog.style.setProperty("--sheet-exit-x", `${Math.round(x)}px`);
-  dialog.style.setProperty("--sheet-exit-y", `${Math.round(y)}px`);
-  dialog.style.setProperty("--sheet-exit-scale", String(EXIT_SCALE));
-}
 
 export function StackBubble() {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -29,44 +15,25 @@ export function StackBubble() {
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    const bubble = bubbleRef.current;
-    if (!dialog || !bubble) return;
+    if (!dialog) return;
 
     const dismiss = (event: MouseEvent) => {
       if (event.target === dialog) dialog.close();
     };
 
-    const remeasure = () => {
-      if (dialog.open) storeExitVector(dialog, bubble);
-    };
-
     dialog.addEventListener("click", dismiss);
-    window.addEventListener("resize", remeasure);
-
-    return () => {
-      dialog.removeEventListener("click", dismiss);
-      window.removeEventListener("resize", remeasure);
-    };
+    return () => dialog.removeEventListener("click", dismiss);
   }, []);
-
-  const openSheet = () => {
-    const dialog = dialogRef.current;
-    const bubble = bubbleRef.current;
-    if (!dialog || !bubble) return;
-
-    dialog.showModal();
-    storeExitVector(dialog, bubble);
-  };
 
   return (
     <>
       <button
         ref={bubbleRef}
         type="button"
-        className="launcher"
+        className="launcher launcher--stowable"
         style={
           {
-            "--launcher-order": 0,
+            "--launcher-order": 1,
             "--launcher-mark": "url('/reactrouter.svg')",
           } as React.CSSProperties
         }
@@ -75,7 +42,7 @@ export function StackBubble() {
         aria-describedby="stack-tip"
         onPointerDown={() => setOpenedByPointer(true)}
         onKeyDown={() => setOpenedByPointer(false)}
-        onClick={openSheet}
+        onClick={() => dialogRef.current?.showModal()}
       >
         <span className="launcher__mark" aria-hidden="true" />
         <span className="launcher__tip" id="stack-tip" role="tooltip">

@@ -125,6 +125,8 @@ export type StackEntry = {
 };
 
 export const DOCK = {
+  toggleLabel: "Explore more",
+  toggleTip: "Explore more.",
   stackLabel: "Open the tech stack",
   stackTip: "Program's tech stack.",
   stackEyebrow: "Decisions, not defaults",

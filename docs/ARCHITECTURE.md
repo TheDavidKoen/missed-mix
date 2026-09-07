@@ -162,10 +162,19 @@ second round trip.
 
 ## Portfolio dock
 
-Two fixed bubbles sit in one column: one opens a sheet describing what the app is
-built on, the other links to the author's site. They exist because this app is a
-portfolio piece, and a reviewer arriving on it should be able to see the decisions
-without cloning the repository.
+A column of fixed bubbles. One is always visible and toggles the rest: a plus that
+rotates into a cross, with a sheet describing what the app runs on and a link to the
+author's site stowed behind it. They exist because this app is a portfolio piece,
+and a reviewer arriving on it should be able to see the decisions without cloning
+the repository.
+
+Stowed bubbles are translated onto the toggle and scaled to a fifth, so expanding
+throws them outward and collapsing draws them back in. Each is delayed by its own
+position in the column, and the delay reverses on the way back, so the group opens
+downward and closes upward. `DockToggle` writes the state to the document element
+for the stylesheet to read, and marks the stowed bubbles `inert`, since a bubble
+that is invisible but still focusable is a keyboard trap. Escape closes the dock, as
+does a click anywhere outside it.
 
 They sit top right everywhere, and the only thing that changes is how far down.
 Below 40rem that depends on what the header actually holds, so the dock is never

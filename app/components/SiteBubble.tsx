@@ -8,8 +8,8 @@ export function SiteBubble() {
       href={DOCK.siteHref}
       target="_blank"
       rel="noopener"
-      className="launcher"
-      style={{ "--launcher-order": 1 } as React.CSSProperties}
+      className="launcher launcher--stowable"
+      style={{ "--launcher-order": 2 } as React.CSSProperties}
       aria-label={DOCK.siteLabel}
       aria-describedby="site-tip"
     >
