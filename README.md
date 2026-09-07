@@ -1,3 +1,9 @@
+# missed-mix
+
+Missed Mix is a social app that matches people on music taste. You declare what
+you listen to, then you send a
+**vibration** — a nudge the other person can accept before any conversation opens.
+
 ## Stack
 
 | Layer | Choice |
