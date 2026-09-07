@@ -2,7 +2,7 @@
    component polls for new messages while it is on screen. */
 
 import { useEffect, useRef } from "react";
-import { Form, Link, redirect, useRevalidator } from "react-router";
+import { Form, isRouteErrorResponse, Link, redirect, useRevalidator } from "react-router";
 
 import { PillButton, PillLink } from "~/components/Pill";
 import { SITE, VIBRATION } from "~/content";
@@ -151,12 +151,18 @@ export default function Conversation({ loaderData, actionData }: Route.Component
   );
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const closed = isRouteErrorResponse(error) && error.status === 404;
+
   return (
     <main className="mx-auto w-full max-w-2xl px-6 pb-16 text-center">
-      <h1 className="text-3xl font-black tracking-tight">No conversation</h1>
+      <h1 className="text-3xl font-black tracking-tight">
+        {closed ? "No conversation" : "That did not load"}
+      </h1>
       <p className="mt-3 text-muted">
-        A conversation opens once one of you accepts the other's vibration.
+        {closed
+          ? "A conversation opens once one of you accepts the other's vibration."
+          : "Something went wrong on our side. Try again in a moment."}
       </p>
       <Link to="/vibrations" className="mt-6 inline-block text-accent underline underline-offset-4">
         Back to Vibrations

@@ -19,11 +19,11 @@ never sent anywhere.
 
 | Bucket | Budget | Measured |
 |---|---|---|
-| Client JavaScript | 125 KB | 105.6 KB |
-| CSS | 8 KB | 4.3 KB |
+| Client JavaScript | 125 KB | 114.4 KB |
+| CSS | 8 KB | 5.8 KB |
 | Fonts | 35 KB | 29.7 KB |
 
-Measured 2026-09-01.
+Measured 2026-09-07.
 
 ## Where the JavaScript goes
 

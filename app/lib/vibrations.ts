@@ -165,13 +165,18 @@ export async function conversation(env: Env, meLower: string, otherLower: string
       .toArray();
 
     const field = vibration.fromUsernameLower === meLower ? "senderReadAt" : "recipientReadAt";
-    await vibrations(db).updateOne(
-      {
-        fromUsernameLower: vibration.fromUsernameLower,
-        toUsernameLower: vibration.toUsernameLower,
-      },
-      { $set: { [field]: new Date() } },
-    );
+    const newest = thread.at(-1)?.createdAt ?? null;
+    const readAt = vibration[field];
+
+    if (newest && (readAt === null || readAt < newest)) {
+      await vibrations(db).updateOne(
+        {
+          fromUsernameLower: vibration.fromUsernameLower,
+          toUsernameLower: vibration.toUsernameLower,
+        },
+        { $set: { [field]: new Date() } },
+      );
+    }
 
     return { vibration, thread };
   });

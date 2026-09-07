@@ -42,11 +42,11 @@
     --dock-top: 1.25rem;
   }
 
-  :root:has([action="/logout"]) {
+  :root:has([data-header="bare"]) {
     --dock-top: 4.75rem;
   }
 
-  :root:has(nav[aria-label="Main"]) {
+  :root:has([data-header="nav"]) {
     --dock-top: 7.5rem;
   }
 
@@ -72,8 +72,8 @@
 
   @media (width >= 40rem) {
     :root,
-    :root:has([action="/logout"]),
-    :root:has(nav[aria-label="Main"]) {
+    :root:has([data-header="bare"]),
+    :root:has([data-header="nav"]) {
       --dock-top: 5.5rem;
     }
   }

@@ -1,5 +1,5 @@
 # Copy this file to .dev.vars and fill it in. .dev.vars is gitignored and must
-# never be committed. The same three values go into the Cloudflare Pages project
+# never be committed. The same five values go into the Cloudflare Pages project
 # under Settings, Variables and Secrets, for both Production and Preview.
 
 # Atlas connection string. Create a database user scoped to this one database.

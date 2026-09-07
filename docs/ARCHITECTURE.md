@@ -147,9 +147,16 @@ difference is round trips over an open socket rather than new handshakes.
 ## Signed-in shell
 
 `routes/signed-in.tsx` is a layout route wrapping `/profile`, `/mixers` and
-`/vibrations`. It owns three things the child routes would otherwise each repeat:
-the session check and redirect to `/login`, the single profile read, and the header
-with the main navigation.
+`/vibrations`. It owns the one profile read the header and its children share, and
+the header itself.
+
+It does not own the session check. Every loader and action repeats the redirect to
+`/login`, ten times across eight files. Half of those are unavoidable: a parent
+layout's loader does not run for a child's action, so each action has to check for
+itself. The loader half is redundant, and each redundant check re-verifies the
+signed cookie. Route middleware, stable since React Router 8.3, would resolve the
+viewer once for both and remove all ten. Until that lands the duplication is real,
+and is described here rather than wished away.
 
 The navigation only renders once a profile exists. Registration lands on `/profile`
 with an empty form, and there is nothing useful to browse until it is filled in.
@@ -177,8 +184,12 @@ that is invisible but still focusable is a keyboard trap. Escape closes the dock
 does a click anywhere outside it.
 
 They sit top right everywhere, and the only thing that changes is how far down.
-Below 40rem that depends on what the header actually holds, so the dock is never
-pushed lower than its own page requires:
+The header declares its own shape with a `data-header` attribute and the stylesheet
+keys off that. Reading a form's `action` or a landmark's `aria-label` would work
+too, and would make layout geometry depend on values that exist for other reasons:
+renaming the navigation for accessibility would silently move the dock. Below 40rem
+the offset depends on what the header holds, so the dock is never pushed lower than
+its own page requires:
 
 | Header state | Contains | `--dock-top` | First bubble |
 |---|---|---|---|
@@ -207,12 +218,8 @@ native listener rather than a React `onClick`, because it is a behaviour of the
 element and its keyboard equivalent is the Escape key the browser already handles.
 
 Its motion is asymmetric on purpose. Opening runs on a spring curve that overshoots
-slightly, which is what reads as native. Closing collapses the sheet back into the
-bubble it came from: `storeExitVector` measures the distance between the two
-centres when the sheet opens, writes it to the element as custom properties, and
-the closing transition translates by that vector while scaling to almost nothing.
-The vector is remeasured on resize, and falls back to a plain upward shrink if it
-was never measured.
+slightly, which is what reads as native; closing is quicker and linear, so dismissing
+feels immediate rather than reluctant.
 As a JSX handler it is also a click on a non-interactive element with no keyboard
 path, which the linter is right to reject.
 
