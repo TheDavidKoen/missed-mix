@@ -1,3 +1,6 @@
+/* root.tsx — Document shell. Layout renders the HTML skeleton every route is wrapped in,
+   App renders the matched route, and ErrorBoundary catches whatever a route throws. */
+
 import type { ReactNode } from "react";
 import {
   isRouteErrorResponse,

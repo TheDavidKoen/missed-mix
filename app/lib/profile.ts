@@ -1,3 +1,7 @@
+/* profile.ts — Profile storage. profileSchema validates the form, parsePicks lifts the
+   six pick fields out of it, saveProfile writes, and listOtherProfiles and
+   readPublicProfile read. */
+
 import { z } from "zod";
 
 import { ensureProfileIndexes, profiles, withDb } from "./mongo";

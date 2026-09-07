@@ -1,3 +1,6 @@
+/* profile.tsx — The profile form. The action stores the avatar, validates the rest and
+   saves, reporting field errors without losing the upload. */
+
 import { useEffect, useRef } from "react";
 import { Form, redirect, useRouteLoaderData } from "react-router";
 

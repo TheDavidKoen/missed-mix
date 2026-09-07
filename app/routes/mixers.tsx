@@ -1,3 +1,5 @@
+/* mixers.tsx — Everyone else on the app, with the one song each has chosen as current. */
+
 import { Link, redirect } from "react-router";
 
 import { MIXERS, SITE } from "~/content";

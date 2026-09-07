@@ -1,3 +1,7 @@
+/* bundle-pages.mjs — Reshapes the Workers build into the _worker.js directory Pages
+   expects, and writes the edge entry that serves assets first, blocks the server bundle
+   and sets the security headers. */
+
 import { cp, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -5,21 +9,6 @@ const CLIENT = "build/client";
 const SERVER = "build/server";
 const WORKER = join(CLIENT, "_worker.js");
 
-/* This is the whole edge boundary in Pages advanced mode: every request reaches
-   it, and Pages serves no static file on its own, so the entry does the asset
-   lookup itself.
-
-   Three things here are load-bearing.
-
-   The asset lookup is GET and HEAD only. A POST whose path matched an asset
-   would otherwise be answered with the asset and never reach a route action.
-
-   The _worker.js guard exists because the asset binding in `wrangler pages dev`
-   is backed by the output directory, this directory included, which serves the
-   compiled server bundle to anyone who asks for it.
-
-   Response headers are set here rather than in a _headers file because _headers
-   applies only to static responses in Pages, so SSR responses would miss them. */
 const ENTRY = `import server from "./server/index.js";
 
 const SECURITY_HEADERS = {
@@ -30,7 +19,7 @@ const SECURITY_HEADERS = {
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
 };
 
-function harden(response) {
+function withSecurityHeaders(response) {
   const headers = new Headers(response.headers);
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
     headers.set(name, value);
@@ -53,10 +42,10 @@ export default {
 
     if (request.method === "GET" || request.method === "HEAD") {
       const asset = await env.ASSETS.fetch(request);
-      if (asset.status < 400) return harden(asset);
+      if (asset.status < 400) return withSecurityHeaders(asset);
     }
 
-    return harden(await server.fetch(request, env, ctx));
+    return withSecurityHeaders(await server.fetch(request, env, ctx));
   },
 };
 `;
@@ -65,19 +54,13 @@ await rm(WORKER, { recursive: true, force: true });
 await mkdir(WORKER, { recursive: true });
 await cp(SERVER, join(WORKER, "server"), { recursive: true });
 
-/* wrangler.json here is a Workers deploy pointer. Left in place, wrangler pages
-   follows it and uploads the Workers build instead of this directory. */
 await rm(join(WORKER, "server", "wrangler.json"), { force: true });
 
-/* The Cloudflare Vite plugin copies .dev.vars into the build output so local
-   tooling can read it. Every secret this project has is in that file, and this
-   directory is what gets uploaded. */
 await rm(join(WORKER, "server", ".dev.vars"), { force: true });
 await rm(join(WORKER, "server", ".vite"), { recursive: true, force: true });
 
 await writeFile(join(WORKER, "index.js"), ENTRY);
 
-/* Build metadata, not public assets. */
 await rm(join(CLIENT, ".vite"), { recursive: true, force: true });
 await rm(join(CLIENT, ".assetsignore"), { force: true });
 

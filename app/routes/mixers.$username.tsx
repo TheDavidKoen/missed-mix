@@ -1,3 +1,6 @@
+/* mixers.$username.tsx — One person's full profile. The loader also reads the pair's
+   vibration, which decides what VibrationPanel offers. */
+
 import { Link, redirect } from "react-router";
 
 import { PickTile } from "~/components/PickTile";

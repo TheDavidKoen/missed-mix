@@ -198,6 +198,14 @@ The sheet is a native `<dialog>` opened with `showModal()`, which supplies focus
 trapping, Escape to close and an inert background for free. Backdrop dismissal is a
 native listener rather than a React `onClick`, because it is a behaviour of the
 element and its keyboard equivalent is the Escape key the browser already handles.
+
+Its motion is asymmetric on purpose. Opening runs on a spring curve that overshoots
+slightly, which is what reads as native. Closing collapses the sheet back into the
+bubble it came from: `storeExitVector` measures the distance between the two
+centres when the sheet opens, writes it to the element as custom properties, and
+the closing transition translates by that vector while scaling to almost nothing.
+The vector is remeasured on resize, and falls back to a plain upward shrink if it
+was never measured.
 As a JSX handler it is also a click on a non-interactive element with no keyboard
 path, which the linter is right to reject.
 

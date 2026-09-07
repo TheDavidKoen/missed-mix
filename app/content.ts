@@ -1,3 +1,6 @@
+/* content.ts — Every user-facing string, exported as data so no sentence lives inside a
+   component. STACK carries the rows the dock's stack sheet renders. */
+
 export const SITE = {
   name: "Missed Mix",
   description: "Find people whose music taste lines up with yours, then send them a vibration.",

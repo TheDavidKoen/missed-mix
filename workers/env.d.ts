@@ -1,6 +1,4 @@
-/* Secrets are declared here rather than left to `wrangler types`, which derives
-   them from .dev.vars. That file is gitignored, so CI has no copy and the
-   generated Env would be missing every one of these. */
+/* env.d.ts — Types for the bindings and secrets the Worker receives. */
 
 interface MissedMixSecrets {
   MONGODB_URI: string;

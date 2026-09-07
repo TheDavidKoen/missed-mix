@@ -1,3 +1,6 @@
+/* api.search.tsx — Spotify search for the picker. Requires a session and is rate
+   limited, so it is not an open proxy to the app's quota. */
+
 import { cloudflareContext } from "~/lib/context";
 import { limitKey, SEARCH_REQUESTS, tooManyAttempts } from "~/lib/rate-limit";
 import { currentUsername } from "~/lib/session";

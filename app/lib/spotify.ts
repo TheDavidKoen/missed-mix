@@ -1,3 +1,7 @@
+/* spotify.ts — Spotify search over Client Credentials. accessToken caches the app token,
+   search returns the picks a profile can hold, pickSchema validates one on the way back
+   in. */
+
 import { z } from "zod";
 
 const TOKEN_URL = "https://accounts.spotify.com/api/token";

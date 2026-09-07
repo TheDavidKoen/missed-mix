@@ -117,7 +117,7 @@ app/
 │   ├── profile       Profile schema and store
 │   ├── rate-limit    In-isolate request budgets
 │   ├── session       Signed cookie sessions
-│   ├── shell         One read for the signed-in layout
+│   ├── viewer        One read for the signed-in layout
 │   ├── spotify       Client Credentials token and search
 │   └── vibrations    Sending, accepting, conversations
 ├── routes/         Route modules, one file per URL

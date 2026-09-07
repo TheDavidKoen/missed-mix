@@ -1,35 +1,67 @@
+/* StackBubble.tsx — The dock's first bubble and the stack sheet it opens. The sheet
+   is a native dialog, which supplies focus trapping and Escape to close.
+   storeExitVector measures the gap between the sheet's centre and the bubble's, so
+   the closing transition collapses the sheet back into the bubble it came from. */
+
 import { useEffect, useRef, useState } from "react";
 
 import { DOCK, STACK } from "~/content";
 
 const ADR_BASE = "https://github.com/TheDavidKoen/missed-mix/blob/main/docs/adr";
+const EXIT_SCALE = 0.06;
+
+function storeExitVector(dialog: HTMLDialogElement, bubble: HTMLElement) {
+  const sheetBox = dialog.getBoundingClientRect();
+  const bubbleBox = bubble.getBoundingClientRect();
+
+  const x = bubbleBox.left + bubbleBox.width / 2 - (sheetBox.left + sheetBox.width / 2);
+  const y = bubbleBox.top + bubbleBox.height / 2 - (sheetBox.top + sheetBox.height / 2);
+
+  dialog.style.setProperty("--sheet-exit-x", `${Math.round(x)}px`);
+  dialog.style.setProperty("--sheet-exit-y", `${Math.round(y)}px`);
+  dialog.style.setProperty("--sheet-exit-scale", String(EXIT_SCALE));
+}
 
 export function StackBubble() {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [viaPointer, setViaPointer] = useState(false);
+  const bubbleRef = useRef<HTMLButtonElement>(null);
+  const [openedByPointer, setOpenedByPointer] = useState(false);
 
-  /* Attached natively rather than as an onClick prop. Dismissing by backdrop is a
-     behaviour of the dialog element, and its keyboard equivalent is Escape, which
-     the browser already handles. As a JSX handler it reads to the linter as a
-     click on a non-interactive element with no keyboard path. */
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
+    const bubble = bubbleRef.current;
+    if (!dialog || !bubble) return;
 
-    // A click on the backdrop lands on the dialog itself, never on a child.
     const dismiss = (event: MouseEvent) => {
       if (event.target === dialog) dialog.close();
     };
 
+    const remeasure = () => {
+      if (dialog.open) storeExitVector(dialog, bubble);
+    };
+
     dialog.addEventListener("click", dismiss);
-    return () => dialog.removeEventListener("click", dismiss);
+    window.addEventListener("resize", remeasure);
+
+    return () => {
+      dialog.removeEventListener("click", dismiss);
+      window.removeEventListener("resize", remeasure);
+    };
   }, []);
+
+  const openSheet = () => {
+    const dialog = dialogRef.current;
+    const bubble = bubbleRef.current;
+    if (!dialog || !bubble) return;
+
+    dialog.showModal();
+    storeExitVector(dialog, bubble);
+  };
 
   return (
     <>
       <button
-        ref={buttonRef}
+        ref={bubbleRef}
         type="button"
         className="launcher"
         style={
@@ -41,10 +73,9 @@ export function StackBubble() {
         aria-label={DOCK.stackLabel}
         aria-haspopup="dialog"
         aria-describedby="stack-tip"
-        onPointerDown={() => setViaPointer(true)}
-        onKeyDown={() => setViaPointer(false)}
-        /* showModal gives focus trapping, Escape to close and an inert background. */
-        onClick={() => dialogRef.current?.showModal()}
+        onPointerDown={() => setOpenedByPointer(true)}
+        onKeyDown={() => setOpenedByPointer(false)}
+        onClick={openSheet}
       >
         <span className="launcher__mark" aria-hidden="true" />
         <span className="launcher__tip" id="stack-tip" role="tooltip">
@@ -56,11 +87,8 @@ export function StackBubble() {
         ref={dialogRef}
         className="sheet"
         aria-labelledby="stack-heading"
-        /* The dialog restores focus to the launcher on close and the browser
-           counts that as keyboard-driven, so a mouse user gets a focus ring
-           they never asked for. Keyboard users keep theirs. */
         onClose={() => {
-          if (viaPointer) buttonRef.current?.blur();
+          if (openedByPointer) bubbleRef.current?.blur();
         }}
       >
         <header className="sheet__bar">
@@ -93,8 +121,6 @@ export function StackBubble() {
                   </span>
                   <span className="text-lg font-black tracking-tight">{entry.choice}</span>
                   {entry.logo ? (
-                    /* Decorative: the name sits directly above it, so alt text
-                       would only repeat what has already been read out. */
                     <img
                       className="stack__logo"
                       src={entry.logo}

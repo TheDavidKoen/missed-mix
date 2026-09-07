@@ -1,3 +1,7 @@
+/* mongo.ts — MongoDB access. beginDbSession and runInDbSession give a request one shared
+   connection, withDb hands that connection to a caller, and each ensure*Indexes asserts
+   the unique index its write path depends on. */
+
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { Binary, Collection, Db, MongoClient } from "mongodb";
 
@@ -11,12 +15,6 @@ type Account = {
   createdAt: Date;
 };
 
-/* A MongoClient cannot be reused across requests: the Workers runtime ties open
-   sockets to the I/O context that created them, so one held in module scope
-   throws on the next request. It can be reused *within* a request, and that is
-   what this session is for. Every connection is a fresh TLS handshake to Atlas,
-   measured at 150 to 350 ms, so a page whose loaders each opened their own paid
-   that cost several times over. See ADR 0009. */
 class DbSession {
   private client: MongoClient | null = null;
   private opening: Promise<Db> | null = null;
@@ -24,14 +22,7 @@ class DbSession {
   constructor(private readonly env: Env) {}
 
   db(): Promise<Db> {
-    /* Caching the promise rather than the resolved Db is what makes two loaders
-       running in parallel share one handshake instead of racing into two. */
     this.opening ??= (async () => {
-      /* Imported here rather than at module scope so the driver is only
-         evaluated on a request that reaches the database. React Router loads
-         every route module to build its manifest, so a top-level import would
-         drag the driver into the graph of every page, and under Vite dev that
-         fails: see the punycode note in the README. */
       const { MongoClient } = await import("mongodb");
 
       const client = new MongoClient(this.env.MONGODB_URI, {
@@ -53,9 +44,7 @@ class DbSession {
 
     try {
       await this.opening;
-    } catch {
-      /* A failed connection has nothing to close. */
-    }
+    } catch {}
 
     await this.client?.close();
   }
@@ -75,8 +64,6 @@ export async function withDb<T>(env: Env, run: (db: Db) => Promise<T>): Promise<
   const session = sessions.getStore();
   if (session) return run(await session.db());
 
-  /* No session means this was called outside a request, so it owns its own
-     connection and must close it. */
   const standalone = new DbSession(env);
 
   try {
@@ -90,16 +77,6 @@ export function accounts(db: Db): Collection<Account> {
   return db.collection<Account>("accounts");
 }
 
-/* Registration depends on this index to reject a username that is already taken,
-   because a check-then-insert loses the race between two simultaneous signups.
-   `scripts/init-db.mjs` creates it as well, but an index created once by hand is
-   not a guarantee: this collection was found without it on 2026-08-31, after which
-   two accounts shared a username. Asserting it here makes the invariant belong to
-   the code that relies on it.
-
-   createIndex is idempotent, and the flag makes this one round trip per isolate
-   rather than per request. A module-scope boolean is safe to keep across requests;
-   a cached client or promise would not be, for the reason above. */
 let accountIndexesEnsured = false;
 
 export async function ensureAccountIndexes(db: Db) {

@@ -86,16 +86,18 @@ reused by the form, the action and the database layer.
 endpoint that handed every user's full record, message text included, to any
 authenticated caller. Select the columns a screen needs.
 
-**Comments mark traps, not intentions.** Write one only where a developer could
-break something without it — a cross-file contract, a load-bearing value, a
-non-obvious constraint. Rationale belongs in an ADR. Prefer expressive naming
-over a comment.
+**One comment per file, at the top of it.** Every source file opens with a header
+naming the file, what it is for, and the functions or loops that carry its weight.
+Nothing else is commented: no inline notes, no section markers, no explanations of
+what the next line does. Rationale belongs in an ADR, and everything else belongs
+in a name.
 
 Good:
 
 ```js
-/* The asset lookup is GET and HEAD only. A POST whose path matched an asset
-   would otherwise be answered with the asset and never reach a route action. */
+/* avatar.ts — Avatar storage. storeAvatar checks the size and sniffs the magic
+   number before writing the bytes, readAvatar returns them with the type it
+   recorded. */
 ```
 
 Not worth writing:
@@ -103,6 +105,9 @@ Not worth writing:
 ```js
 /* Render a label and an input for each field. */
 ```
+
+If a line needs an inline comment to be safe, the fix is usually a named constant
+or a named function, not the comment.
 
 **Prose in rendered copy, comments and metadata uses no em dashes.** Markdown
 documentation is exempt and uses them freely.

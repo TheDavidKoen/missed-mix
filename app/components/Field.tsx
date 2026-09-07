@@ -1,3 +1,5 @@
+/* Field.tsx — One labelled control with its hint and error, used by every form. */
+
 const control =
   "rounded-xl border border-line bg-raised px-4 py-3 text-base text-ink placeholder:text-muted";
 

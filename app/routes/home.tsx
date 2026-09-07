@@ -1,3 +1,5 @@
+/* home.tsx — Landing page. The only route a signed-out visitor is meant to arrive on. */
+
 import { PillLink } from "~/components/Pill";
 import { Wordmark } from "~/components/Wordmark";
 import { LANDING, SITE } from "~/content";
