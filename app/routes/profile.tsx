@@ -29,6 +29,16 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   const form = await request.formData();
 
+  const parsed = profileSchema.safeParse({
+    firstName: form.get("firstName"),
+    description: form.get("description") ?? "",
+    picks: parsePicks(form),
+  });
+
+  if (!parsed.success) {
+    return { fieldErrors: fieldErrorsFrom(parsed.error), avatarError: null, saved: false };
+  }
+
   const avatar = form.get("avatar");
   let avatarError: string | null = null;
   let avatarUpdated = false;
@@ -39,16 +49,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     if (failure === "too-large") avatarError = "That image is larger than 2 MB.";
     else if (failure === "not-an-image") avatarError = "That file is not a JPEG, PNG or WebP.";
     else avatarUpdated = true;
-  }
-
-  const parsed = profileSchema.safeParse({
-    firstName: form.get("firstName"),
-    description: form.get("description") ?? "",
-    picks: parsePicks(form),
-  });
-
-  if (!parsed.success) {
-    return { fieldErrors: fieldErrorsFrom(parsed.error), avatarError, saved: false };
   }
 
   await saveProfile(env, username.toLowerCase(), parsed.data, avatarUpdated);

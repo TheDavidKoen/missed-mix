@@ -1,7 +1,7 @@
 /* mixers.$username.tsx — One person's full profile. The loader also reads the pair's
    vibration, which decides what VibrationPanel offers. */
 
-import { Link, redirect } from "react-router";
+import { isRouteErrorResponse, Link, redirect } from "react-router";
 
 import { PickTile } from "~/components/PickTile";
 import { PillLink } from "~/components/Pill";
@@ -133,11 +133,19 @@ export default function MixerProfile({ loaderData, actionData }: Route.Component
   );
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const missing = isRouteErrorResponse(error) && error.status === 404;
+
   return (
     <main className="mx-auto w-full max-w-3xl px-6 pb-16 text-center">
-      <h1 className="text-3xl font-black tracking-tight">No such profile</h1>
-      <p className="mt-3 text-muted">That person is not on Missed Mix.</p>
+      <h1 className="text-3xl font-black tracking-tight">
+        {missing ? "No such profile" : "That did not load"}
+      </h1>
+      <p className="mt-3 text-muted">
+        {missing
+          ? "That person is not on Missed Mix."
+          : "Something went wrong on our side. Try again in a moment."}
+      </p>
       <Link to="/mixers" className="mt-6 inline-block text-accent underline underline-offset-4">
         Back to Mixers
       </Link>

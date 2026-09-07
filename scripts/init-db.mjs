@@ -50,13 +50,17 @@ try {
       { unique: true, name: "vibration_pair_unique" },
     );
 
+  const recipientIndex = await db
+    .collection("vibrations")
+    .createIndex({ toUsernameLower: 1, status: 1 }, { name: "vibration_recipient_status" });
+
   const messageIndex = await db
     .collection("messages")
     .createIndex({ pairKey: 1, createdAt: 1 }, { name: "message_pair_created" });
 
   console.log(`Connected to ${vars.MONGODB_DB}`);
   console.log(
-    `Indexes ready: ${name}, ${profileIndex}, ${avatarIndex}, ${vibrationIndex}, ${messageIndex}`,
+    `Indexes ready: ${name}, ${profileIndex}, ${avatarIndex}, ${vibrationIndex}, ${recipientIndex}, ${messageIndex}`,
   );
   console.log(`Accounts: ${await db.collection("accounts").countDocuments()}`);
 } catch (error) {

@@ -166,6 +166,11 @@ export async function ensureVibrationIndexes(db: Db) {
     { unique: true, name: "vibration_pair_unique" },
   );
 
+  await vibrations(db).createIndex(
+    { toUsernameLower: 1, status: 1 },
+    { name: "vibration_recipient_status" },
+  );
+
   vibrationIndexesEnsured = true;
 }
 

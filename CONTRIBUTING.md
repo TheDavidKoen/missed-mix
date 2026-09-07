@@ -27,7 +27,7 @@ git checkout -b feat/thing
 ```
 
 One build stage is one branch and one pull request. The stage list is in the
-[README](README.md#build-stages).
+[README](README.md#what-it-does).
 
 ## Commits
 
@@ -109,8 +109,9 @@ Not worth writing:
 If a line needs an inline comment to be safe, the fix is usually a named constant
 or a named function, not the comment.
 
-**Prose in rendered copy, comments and metadata uses no em dashes.** Markdown
-documentation is exempt and uses them freely.
+**Prose in rendered copy, comments and metadata uses no em dashes.** The separator
+between a filename and its purpose in a file header is not prose and is exempt.
+Markdown documentation is exempt and uses them freely.
 
 **Animated components handle `prefers-reduced-motion` themselves.** Gate the
 transition, not just its duration: shortening a duration parks an animation

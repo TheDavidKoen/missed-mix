@@ -8,7 +8,10 @@ import { Wordmark } from "./Wordmark";
 
 export function MainNav({ ready, unread }: { ready: boolean; unread: number }) {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-4 px-6 py-5 sm:px-10">
+    <header
+      data-header={ready ? "nav" : "bare"}
+      className="flex flex-wrap items-center justify-between gap-4 px-6 py-5 sm:px-10"
+    >
       <Wordmark className="text-xl" />
 
       {ready ? (

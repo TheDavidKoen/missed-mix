@@ -48,7 +48,11 @@ export async function saveProfile(
           updatedAt: now,
           ...(avatarUpdated ? { avatarUpdatedAt: now } : {}),
         },
-        $setOnInsert: { usernameLower, createdAt: now },
+        $setOnInsert: {
+          usernameLower,
+          createdAt: now,
+          ...(avatarUpdated ? {} : { avatarUpdatedAt: null }),
+        },
       },
       { upsert: true },
     );
