@@ -37,6 +37,6 @@ how the app was reasoned about.
 - The pull request trail is the durable record, not the branch list.
 - A branch that has already been merged is spent: further work starts a new one,
   because GitHub will not reopen a merged PR for new commits.
-- Stage 0 and stage 1 landed together in the root commit rather than as two pull
-  requests, because the repository did not exist yet when the scaffold was
-  reshaped. The convention starts from stage 2.
+- The scaffold and the first pages landed together in the root commit rather than
+  as two pull requests, because the repository did not exist yet when the scaffold
+  was reshaped. Every change after that followed the convention.

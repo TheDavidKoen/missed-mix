@@ -1,18 +1,3 @@
-# missed-mix
-
-Missed Mix is a social app that matches people on music taste. You declare what
-you listen to, the app ranks the profiles closest to yours, and you send a
-**vibration** — a nudge the other person can accept before any conversation opens.
-
-Built by **David Koen** as a portfolio piece. The repository is part of the
-deliverable: the branch history, pull requests and decision records are meant to
-be read alongside the running app.
-
-> **Status: in build.** Stage 2 of eleven, live at
-> [missed-mix.pages.dev](https://missed-mix.pages.dev). Registration and sign-in
-> work. `pnpm dev` cannot reach the database; `pnpm preview` can. See
-> [Two dev servers](#two-dev-servers).
-
 ## Stack
 
 | Layer | Choice |
@@ -23,7 +8,6 @@ be read alongside the running app.
 | Validation | Zod, one schema per boundary |
 | Database | MongoDB Atlas M0, official driver over TCP |
 | Object storage | None. Avatars live in MongoDB ([ADR 0010](docs/adr/0010-avatars-in-mongodb-not-r2.md)) |
-| Realtime | Durable Objects, one per accepted pair *(stage 8)* |
 | Identity | Username and password, no email, no third party |
 | Catalogue | Spotify Web API, Client Credentials only |
 | Lint + format | Biome |
@@ -142,24 +126,16 @@ a sentence is a data edit, and the same string cannot drift between two pages.
 **Design tokens live in `@theme`** in `app/app.css`. No raw hex values in
 components.
 
-## Build stages
+## What it does
 
-Each stage is one branch and one pull request. `main` stays deployable at every
-boundary.
-
-| # | Stage | State |
-|---|---|---|
-| 0 | Scaffold, toolchain, CI, docs | Done |
-| 1 | Logged-out entry: landing, `/login`, `/register` | Done |
-| 2 | Credentials, sessions, rate limiting, `accounts` in Atlas | Done |
-| 3 | Onboarding and profiles | Done |
-| 4 | Avatars | Done |
-| 5 | Spotify catalogue and the taste picker | Done |
-| 6 | Mixers: every other profile and their picks | Done |
-| 7 | Vibrations: send with a song | Sending done, accept and decline next |
-| 8 | Conversations, opened by an accepted vibration |  |
-| 9 | Hardening: rate limits, CSP, export and delete |  |
-| 10 | Docs, seed data, launch |  |
+| Area | Behaviour |
+|---|---|
+| Accounts | Username and password, sessions in a signed cookie, sign-in rate limited |
+| Profiles | A name, a quote, an avatar, and six taste picks searched from Spotify |
+| Mixers | Every other profile, each showing the song they have marked as current |
+| Vibrations | One per pair, carrying a song. The recipient accepts to open a conversation |
+| Conversations | Private to the two participants, polled while open, with an unread badge |
+| Stack sheet | A dock bubble describing what the app runs on, linking to the records |
 
 ## Identity
 
@@ -179,11 +155,11 @@ importantly, for the obligations that holding credentials creates.
 The auth pages say so too.
 
 Holding credentials means doing it properly, and the Workers runtime constrains
-how. bcrypt and Argon2 need WASM, so stage 2 uses PBKDF2-HMAC-SHA-256 through Web
-Crypto with a per-user salt, digest comparison rather than string comparison,
-failure messages that do not reveal whether a username exists, and rate limiting
-on the sign-in route. That last one moves forward from stage 9, because a password
-endpoint without a rate limit is precisely the flaw in the app this replaces.
+how. bcrypt and Argon2 need WASM, so credentials use PBKDF2-HMAC-SHA-256 through
+Web Crypto with a per-user salt, digest comparison rather than string comparison,
+failure messages that do not reveal whether a username exists, and rate limiting on
+the sign-in route. A password endpoint without a rate limit is precisely the flaw
+in the app this replaces.
 
 Password policy is enforced on registration only. Signing in checks that the
 fields are present and nothing else: telling a stranger which rules a stored
@@ -242,7 +218,7 @@ pnpm exec wrangler pages deploy build/client --project-name missed-mix --branch 
 ```
 
 Connecting the repo in the dashboard would give automatic deploys and per-branch
-previews, and is the next infrastructure task. The build settings it would need:
+previews. The build settings it would need:
 
 | Setting | Value |
 |---|---|
@@ -257,7 +233,7 @@ into the `_worker.js` directory Pages expects, and writes the edge entry that do
 the asset lookup, blocks access to the server bundle, and sets the security
 headers. See [ADR 0002](docs/adr/0002-cloudflare-pages-over-workers.md).
 
-The domain will be a free `is-a.dev` subdomain, registered by pull request against
+The domain is a free `is-a.dev` subdomain, registered by pull request against
 [is-a-dev/register](https://github.com/is-a-dev/register). **Attaching it cannot
 be done from the Cloudflare dashboard**: `is-a.dev` is on the
 [Public Suffix List](https://publicsuffix.org/), so the dashboard treats the

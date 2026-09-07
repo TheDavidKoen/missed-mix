@@ -23,7 +23,7 @@ never sent anywhere.
 | CSS | 8 KB | 4.3 KB |
 | Fonts | 35 KB | 29.7 KB |
 
-Measured 2026-09-01, at stage 5.
+Measured 2026-09-01.
 
 ## Where the JavaScript goes
 
@@ -139,4 +139,4 @@ SEO is switched off for `/register` because that page is deliberately `noindex`,
 which Lighthouse scores as a failure. Auditing it at all is for the accessibility
 pass: it holds the only form in the app so far.
 
-`csp-xss` is off until stage 9 adds a Content Security Policy.
+`csp-xss` is off because the app sets no Content Security Policy.

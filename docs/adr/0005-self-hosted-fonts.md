@@ -22,7 +22,7 @@ path. Self-hosted files come from the same connection as everything else and are
 fingerprinted and cached immutably by the same asset pipeline.
 
 It is also a privacy question, and for this app that matters more than the
-milliseconds. Missed Mix is a social app handling birth years, declared taste and
+milliseconds. Missed Mix is a social app handling declared taste and
 private conversations. Sending every visitor's IP address to a third party in
 order to render text is inconsistent with the rest of the posture, and it has been
 found unlawful under GDPR in at least one German court decision.

@@ -4,7 +4,7 @@
 
 ## Context
 
-Stage 2 needs persistence. Everything up to this point assumed Cloudflare D1 with
+The app needs persistence. Everything up to this point assumed Cloudflare D1 with
 Drizzle: an edge-native SQLite reachable through a binding, with no network hop
 and nothing exposed to the internet.
 
@@ -47,7 +47,7 @@ Three of these are real losses and are the price of the decision.
   does not threaten the 10 ms limit. It does undercut the reason for being on the
   edge. Reuse *within* a request was recovered on 2026-09-02; see the amendment
   below. Reuse *across* requests still needs a Durable Object holding the
-  connection, and stage 8 introduces Durable Objects for chat anyway.
+  connection, which would serve the conversation polling as well.
 - **Atlas must allow `0.0.0.0/0`.** Workers have no stable egress IPs, so no
   narrower rule exists. The cluster is reachable from the whole internet with
   credentials as the only defence, where D1 was reachable only through a binding.
@@ -87,6 +87,6 @@ again and again inside a single request.
 Nothing else changed. Call sites still call `withDb(env, run)`, and one called
 outside a request still opens and closes its own connection.
 
-The Durable Object plan stands, and now buys less: it would remove the one
-remaining handshake per request rather than three or four of them. That makes it a
-stage 8 improvement rather than a latency fix the app is waiting on.
+A Durable Object holding the connection would still help, and now buys less: it
+would remove the one remaining handshake per request rather than three or four of
+them. That is an improvement, not a fix the app is waiting on.
