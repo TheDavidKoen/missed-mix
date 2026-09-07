@@ -1,8 +1,6 @@
-/* Per-isolate, so it is a speed bump rather than a guarantee: Cloudflare runs
-   many isolates and an attacker spread across them gets a multiple of this
-   budget. It costs nothing, needs no storage, and removes the case the app this
-   replaces actually suffered, which was unlimited sequential guessing against
-   one endpoint. A durable limiter arrives with the stage 9 hardening pass. */
+/* rate-limit.ts — In-isolate request budgets. limitKey identifies a caller,
+   tooManyAttempts records an attempt and reports whether the budget is spent. */
+
 const WINDOW_MS = 60_000;
 
 export const SIGN_IN_ATTEMPTS = 8;

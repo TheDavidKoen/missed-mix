@@ -1,7 +1,8 @@
+/* session.ts — Signed cookie sessions. currentUsername reads the viewer out of a
+   request, startSession and endSession issue and clear the cookie. */
+
 import { createCookieSessionStorage, redirect } from "react-router";
 
-/* Built per request rather than once at module scope, because the signing secret
-   arrives with the request. See the note in workers/app.ts. */
 function sessionStorage(env: Env) {
   return createCookieSessionStorage<{ username: string }>({
     cookie: {

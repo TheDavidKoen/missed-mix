@@ -1,3 +1,5 @@
+/* logout.tsx — Ends the session and returns to the landing page. */
+
 import { redirect } from "react-router";
 
 import { cloudflareContext } from "~/lib/context";

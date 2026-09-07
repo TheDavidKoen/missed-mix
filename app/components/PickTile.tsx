@@ -1,7 +1,7 @@
+/* PickTile.tsx — One answered prompt, read only, as shown on somebody else's profile. */
+
 import type { MusicPick } from "~/lib/spotify";
 
-/* The read-only twin of MusicPicker: the same card without the search field or
-   the Change control, for looking at somebody else's answers. */
 export function PickTile({
   label,
   pick,

@@ -50,7 +50,7 @@ because React Router 8 ships no Pages adapter. See
 Route modules stay thin on purpose. `app/routes/login.tsx` is seventeen lines: its
 action calls `submitCredentials` and its component renders `AuthPanel`. All of the
 work, validation, hashing, the Atlas round trip and the session cookie, lives in
-`app/lib/`, so the route file did not grow when stage 2 landed.
+`app/lib/`, so the route files stay small however much the app grows.
 
 `login.tsx` and `register.tsx` are deliberately near-identical rather than merged.
 They pass a different intent, which already selects a different schema, and will
@@ -64,8 +64,8 @@ Every value that arrives from outside is untrusted until a Zod schema has parsed
 it. That includes form fields, query strings, cookies and third-party API
 responses.
 
-Schemas live in `app/lib/` so one definition serves the form, the action and,
-from stage 3, the database layer.
+Schemas live in `app/lib/` so one definition serves the form, the action and the
+database layer.
 
 `registerSchema` and `loginSchema` are deliberately different rather than shared.
 Registration carries the policy: length bounds and the permitted character set.
@@ -80,23 +80,21 @@ An account is a username and a password, and nothing else
 [ADR 0004](adr/0004-oauth-only-identity.md)). There is no email address and no
 third-party identity, so nothing here links a profile to a real account elsewhere.
 
-Credentials are stored as PBKDF2-HMAC-SHA-256 digests with a per-user random salt,
-from stage 2. bcrypt and Argon2 are unavailable on the Workers runtime without
+Credentials are stored as PBKDF2-HMAC-SHA-256 digests with a per-user random salt.
+bcrypt and Argon2 are unavailable on the Workers runtime without
 shipping WASM, which is the constraint driving that choice rather than a
 preference. Verification compares digests. Sign-in failures are generic, and the
-sign-in route is rate limited from stage 2 rather than stage 9, because a password
-endpoint without one is the exact flaw in the app this replaces.
+sign-in route is rate limited, because a password endpoint without one is the exact
+flaw in the app this replaces.
 
-Planned personal data, and the rules it carries:
+Personal data, and the rules it carries:
 
 | Data | From | Rule |
 |---|---|---|
 | Username | Registration | Public to signed-in users. It is the identifier |
 | Password digest | Registration | Never leaves the database, never logged, never echoed |
-| Display name, bio | Onboarding | Public to signed-in users |
+| First name, quote | Profile form | Public to signed-in users |
 | Avatar | Upload | Public to signed-in users, content-sniffed, 2 MB cap ([ADR 0010](adr/0010-avatars-in-mongodb-not-r2.md)) |
-| Birth year | Onboarding | Year only, never a full date. Displayed as an age band |
-| Sex | Onboarding | Optional, with a "prefer not to say" value. Never inferred |
 | Taste picks | Spotify search | Public to signed-in users |
 | Vibration | Sender | The song and sender are visible only to the recipient |
 | Conversation messages | Chat | Readable only by the two participants, ever |
@@ -164,10 +162,19 @@ second round trip.
 
 ## Portfolio dock
 
-Two fixed bubbles sit in one column: one opens a sheet describing what the app is
-built on, the other links to the author's site. They exist because this app is a
-portfolio piece, and a reviewer arriving on it should be able to see the decisions
-without cloning the repository.
+A column of fixed bubbles. One is always visible and toggles the rest: a plus that
+rotates into a cross, with a sheet describing what the app runs on and a link to the
+author's site stowed behind it. They exist because this app is a portfolio piece,
+and a reviewer arriving on it should be able to see the decisions without cloning
+the repository.
+
+Stowed bubbles are translated onto the toggle and scaled to a fifth, so expanding
+throws them outward and collapsing draws them back in. Each is delayed by its own
+position in the column, and the delay reverses on the way back, so the group opens
+downward and closes upward. `DockToggle` writes the state to the document element
+for the stylesheet to read, and marks the stowed bubbles `inert`, since a bubble
+that is invisible but still focusable is a keyboard trap. Escape closes the dock, as
+does a click anywhere outside it.
 
 They sit top right everywhere, and the only thing that changes is how far down.
 Below 40rem that depends on what the header actually holds, so the dock is never
@@ -198,6 +205,14 @@ The sheet is a native `<dialog>` opened with `showModal()`, which supplies focus
 trapping, Escape to close and an inert background for free. Backdrop dismissal is a
 native listener rather than a React `onClick`, because it is a behaviour of the
 element and its keyboard equivalent is the Escape key the browser already handles.
+
+Its motion is asymmetric on purpose. Opening runs on a spring curve that overshoots
+slightly, which is what reads as native. Closing collapses the sheet back into the
+bubble it came from: `storeExitVector` measures the distance between the two
+centres when the sheet opens, writes it to the element as custom properties, and
+the closing transition translates by that vector while scaling to almost nothing.
+The vector is remeasured on resize, and falls back to a plain upward shrink if it
+was never measured.
 As a JSX handler it is also a click on a non-interactive element with no keyboard
 path, which the linter is right to reject.
 
@@ -249,19 +264,23 @@ In place now:
 | Third-party image URLs | Restricted to Spotify's CDN on save, so a profile cannot embed an arbitrary tracker |
 | Search endpoint | Requires a session, so it is not an open proxy to our Spotify quota |
 
-Deferred, with the stage that closes each:
+Not implemented, and named here rather than left for a reader to find:
 
-| Gap | Stage |
+| Gap | Consequence |
 |---|---|
-| CSRF tokens | 2, still open |
-| Rate limiting | 7 for vibrations, 9 globally |
-| Content Security Policy | 9 |
-| Data export and account deletion | 9 |
-| Blocking and reporting | 9 |
+| CSRF tokens | A cross-site form post can reach an action carrying the viewer's cookie |
+| Rate limiting beyond sign-in and search | Vibrations and messages have no budget |
+| Content Security Policy | An injected script would not be stopped by policy |
+| Data export and account deletion | A viewer cannot retrieve or remove their own record |
+| Blocking and reporting | Nothing stops an unwanted vibration but ignoring it |
 
-CSP is deferred rather than forgotten. React Router inlines hydration state in a
-`<script>` tag, so a useful policy needs per-response nonces threaded through the
-document. That is worth doing once, properly, alongside the rest of the hardening.
+A Content Security Policy is the one with an obstacle rather than an absence of
+work. React Router inlines hydration state in a `<script>` tag, so a policy strict
+enough to be worth setting needs a per-response nonce threaded through the document.
+
+None of these would be acceptable in a service holding real accounts. All of them
+are survivable here, where every account is disposable and nothing stored is real
+([ADR 0008](adr/0008-demo-credentials.md)).
 
 ## Why there is no API layer
 

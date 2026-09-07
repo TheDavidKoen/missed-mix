@@ -1,3 +1,6 @@
+/* app.ts — Worker entry. Opens one database session per request, runs the React Router
+   handler inside it, and closes the session once the response is on its way. */
+
 import { createRequestHandler, RouterContextProvider } from "react-router";
 
 import { cloudflareContext } from "../app/lib/context";
@@ -13,10 +16,6 @@ export default {
     const context = new RouterContextProvider();
     context.set(cloudflareContext, { env, ctx });
 
-    /* Every loader on a page shares one connection. Closing runs after the
-       response is handed back, so the handshake cost is paid once and the
-       teardown is not on the critical path. Loaders have all resolved by the
-       time the handler returns, so nothing still needs the client. */
     const session = beginDbSession(env);
 
     try {

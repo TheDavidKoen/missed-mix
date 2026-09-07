@@ -1,3 +1,6 @@
+/* check-budget.mjs — Fails the build when the client bundle, stylesheet or fonts exceed
+   their budgets, or when the edge entry has lost one of its guards. */
+
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { gzipSync } from "node:zlib";
@@ -5,7 +8,6 @@ import { gzipSync } from "node:zlib";
 const CLIENT = "build/client";
 const WORKER = join(CLIENT, "_worker.js");
 
-/* Mirrors docs/PERFORMANCE.md. Changing a number here means changing it there. */
 const BUDGET = {
   clientJsKb: 125,
   cssKb: 8,
@@ -26,7 +28,6 @@ if (!existsSync(WORKER)) {
   process.exit(1);
 }
 
-/* Everything under _worker.js runs on the server and is never sent to a browser. */
 const shipped = walk(CLIENT).filter((file) => !file.includes("_worker.js"));
 
 const jsKb = sum(shipped.filter((f) => f.endsWith(".js")));
@@ -50,9 +51,6 @@ if (fontKb > BUDGET.fontKb) {
   failures.push(`fonts ${fontKb.toFixed(1)} KB exceeds ${BUDGET.fontKb} KB`);
 }
 
-/* Regression guard for ADR 0005. A stylesheet that reaches out to Google Fonts
-   still renders correctly, so nothing looks broken. It just adds a third-party
-   connection to the critical path and puts a visitor's IP in someone else's log. */
 const styles = shipped
   .filter((f) => f.endsWith(".css"))
   .map((f) => readFileSync(f, "utf8"))
@@ -65,9 +63,6 @@ if (!fontKb) {
   failures.push("no self-hosted font files in the build");
 }
 
-/* Regression guard for ADR 0002. Each of these fails silently: the site keeps
-   serving and every page keeps rendering, while the server bundle becomes
-   publicly readable or SSR responses quietly lose their headers. */
 const entry = readFileSync(join(WORKER, "index.js"), "utf8");
 
 if (!entry.includes('startsWith("/_worker.js/")')) {

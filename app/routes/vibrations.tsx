@@ -1,3 +1,5 @@
+/* vibrations.tsx — Vibrations waiting on the viewer, and the conversations already open. */
+
 import { Link, redirect } from "react-router";
 
 import { SITE, VIBRATION } from "~/content";

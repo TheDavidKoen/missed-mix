@@ -1,3 +1,7 @@
+/* vibrations.ts — Vibrations and the conversations they open. sendVibration and
+   acceptVibration move a pair through its states, conversation and postMessage serve the
+   chat, unreadFor drives the navigation badge. */
+
 import type { Db } from "mongodb";
 import {
   ensureMessageIndexes,
@@ -9,8 +13,6 @@ import {
 } from "./mongo";
 import type { MusicPick } from "./spotify";
 
-/* Both directions of a conversation have to resolve to one key, so it is sorted
-   rather than concatenated in submission order. */
 export function pairKey(a: string, b: string) {
   return [a, b].sort().join(":");
 }
@@ -77,8 +79,6 @@ export async function vibrationsWith(env: Env, meLower: string, otherLower: stri
       ),
     ]);
 
-    /* Opening the sender's profile is one of the two ways a recipient acts on a
-       vibration, so it clears the badge here as well as in the conversation. */
     if (received && received.recipientReadAt === null) {
       await vibrations(db).updateOne(
         { fromUsernameLower: otherLower, toUsernameLower: meLower },
@@ -164,8 +164,6 @@ export async function conversation(env: Env, meLower: string, otherLower: string
       )
       .toArray();
 
-    /* Opening the room is what clears the badge, so the marker moves here rather
-       than when a message is sent. */
     const field = vibration.fromUsernameLower === meLower ? "senderReadAt" : "recipientReadAt";
     await vibrations(db).updateOne(
       {

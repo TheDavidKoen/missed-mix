@@ -1,3 +1,6 @@
+/* avatar.ts — Avatar storage. storeAvatar checks the size and sniffs the magic number
+   before writing the bytes, readAvatar returns them with the type it recorded. */
+
 import { avatars, ensureAvatarIndexes, withDb } from "./mongo";
 
 const MAX_BYTES = 2 * 1024 * 1024;

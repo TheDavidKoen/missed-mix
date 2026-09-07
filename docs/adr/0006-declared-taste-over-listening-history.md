@@ -42,7 +42,7 @@ more honest signal.
 ## Consequences
 
 - Onboarding is longer. Picking artists is work that an import would have done.
-- Cold start is worse: a profile with three picks matches poorly. Stage 5 needs a
+- Cold start is worse: a profile with three picks matches poorly. The picker needs a
   sensible minimum and a good picker.
 - Nobody can be matched on a guilty pleasure they would not have listed. That is
   a real loss of signal, and accepted.

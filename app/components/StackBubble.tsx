@@ -1,3 +1,7 @@
+/* StackBubble.tsx — A stowed dock bubble and the stack sheet it opens. The sheet is a
+   native dialog, which supplies focus trapping and Escape to close; the click
+   listener adds dismissal by backdrop, whose target is the dialog itself. */
+
 import { useEffect, useRef, useState } from "react";
 
 import { DOCK, STACK } from "~/content";
@@ -6,18 +10,13 @@ const ADR_BASE = "https://github.com/TheDavidKoen/missed-mix/blob/main/docs/adr"
 
 export function StackBubble() {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [viaPointer, setViaPointer] = useState(false);
+  const bubbleRef = useRef<HTMLButtonElement>(null);
+  const [openedByPointer, setOpenedByPointer] = useState(false);
 
-  /* Attached natively rather than as an onClick prop. Dismissing by backdrop is a
-     behaviour of the dialog element, and its keyboard equivalent is Escape, which
-     the browser already handles. As a JSX handler it reads to the linter as a
-     click on a non-interactive element with no keyboard path. */
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    // A click on the backdrop lands on the dialog itself, never on a child.
     const dismiss = (event: MouseEvent) => {
       if (event.target === dialog) dialog.close();
     };
@@ -29,21 +28,20 @@ export function StackBubble() {
   return (
     <>
       <button
-        ref={buttonRef}
+        ref={bubbleRef}
         type="button"
-        className="launcher"
+        className="launcher launcher--stowable"
         style={
           {
-            "--launcher-order": 0,
+            "--launcher-order": 1,
             "--launcher-mark": "url('/reactrouter.svg')",
           } as React.CSSProperties
         }
         aria-label={DOCK.stackLabel}
         aria-haspopup="dialog"
         aria-describedby="stack-tip"
-        onPointerDown={() => setViaPointer(true)}
-        onKeyDown={() => setViaPointer(false)}
-        /* showModal gives focus trapping, Escape to close and an inert background. */
+        onPointerDown={() => setOpenedByPointer(true)}
+        onKeyDown={() => setOpenedByPointer(false)}
         onClick={() => dialogRef.current?.showModal()}
       >
         <span className="launcher__mark" aria-hidden="true" />
@@ -56,11 +54,8 @@ export function StackBubble() {
         ref={dialogRef}
         className="sheet"
         aria-labelledby="stack-heading"
-        /* The dialog restores focus to the launcher on close and the browser
-           counts that as keyboard-driven, so a mouse user gets a focus ring
-           they never asked for. Keyboard users keep theirs. */
         onClose={() => {
-          if (viaPointer) buttonRef.current?.blur();
+          if (openedByPointer) bubbleRef.current?.blur();
         }}
       >
         <header className="sheet__bar">
@@ -93,8 +88,6 @@ export function StackBubble() {
                   </span>
                   <span className="text-lg font-black tracking-tight">{entry.choice}</span>
                   {entry.logo ? (
-                    /* Decorative: the name sits directly above it, so alt text
-                       would only repeat what has already been read out. */
                     <img
                       className="stack__logo"
                       src={entry.logo}

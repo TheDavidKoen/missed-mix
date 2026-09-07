@@ -1,3 +1,6 @@
+/* auth.ts — Registration and sign-in. submitCredentials validates the form and delegates
+   to createAccount or authenticate, returning field errors rather than throwing. */
+
 import { data } from "react-router";
 import { z } from "zod";
 import { fieldErrorsFrom } from "./form";
@@ -8,9 +11,6 @@ import { startSession } from "./session";
 
 export type AuthIntent = "login" | "register";
 
-/* Registration enforces the policy. Signing in deliberately does not: an account
-   created before a rule changed must still be able to get in, and telling a
-   stranger which rules a stored password breaks is free reconnaissance. */
 const registerSchema = z.object({
   username: z
     .string()
@@ -35,9 +35,6 @@ export type AuthResult = {
   username?: string;
 };
 
-/* Verified against when no account matches, so a sign-in attempt costs the same
-   whether the username exists or not. Without it the response time answers the
-   question the generic error message is there to refuse. */
 const ABSENT_ACCOUNT_HASH =
   "pbkdf2-sha256$5000$NsnXodM+pxiubKG3HpeEhg==$8g/MkZbo8y2CkA04FQc0fHL2Hb8z5KwB0Q9ITRSRzfI=";
 
@@ -54,8 +51,6 @@ export async function submitCredentials(request: Request, intent: AuthIntent, en
     password: form.get("password"),
   };
 
-  /* The username is echoed back so the field survives a failed submit. The
-     password never is, in either direction. */
   const username = typeof submitted.username === "string" ? submitted.username : "";
 
   const schema = intent === "register" ? registerSchema : loginSchema;
@@ -80,9 +75,6 @@ async function createAccount(
   const passwordHash = await hashPassword(credentials.password);
 
   try {
-    /* The unique index on usernameLower is the guard, not a prior lookup. Two
-       simultaneous registrations of the same name both pass a check-then-insert;
-       only one survives a unique index. */
     await withDb(env, async (db) => {
       await ensureAccountIndexes(db);
 

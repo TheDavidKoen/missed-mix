@@ -1,3 +1,6 @@
+/* VibrationPanel.tsx — The four states one pair can be in: conversation open, waiting on
+   this viewer to accept, already sent, or nothing yet. */
+
 import { Form } from "react-router";
 
 import { MusicPicker } from "~/components/MusicPicker";
@@ -7,10 +10,6 @@ import type { MusicPick } from "~/lib/spotify";
 
 type Vibe = { status: "pending" | "accepted" | "declined"; song: MusicPick } | null;
 
-/* Four states, and only one of them is reachable at a time: the pair already has
-   a conversation, they are waiting on this user to accept, this user has sent one
-   and is waiting, or neither has happened yet. The order below is the order they
-   take precedence in, because an accepted pair also has a sent record. */
 export function VibrationPanel({
   username,
   sent,

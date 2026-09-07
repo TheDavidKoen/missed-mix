@@ -1,3 +1,6 @@
+/* form.ts — fieldErrorsFrom turns a Zod error into a map of field name to message, which
+   is the shape the form components render. */
+
 import type { ZodError } from "zod";
 
 export function fieldErrorsFrom(error: ZodError | null): Record<string, string> {

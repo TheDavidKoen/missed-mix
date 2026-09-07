@@ -1,3 +1,5 @@
+/* Pill.tsx — PillLink and PillButton, the two shapes every call to action takes. */
+
 import type { ComponentProps } from "react";
 import { Link } from "react-router";
 

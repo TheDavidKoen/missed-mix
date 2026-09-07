@@ -1,3 +1,6 @@
+/* AuthPanel.tsx — The sign-in and registration form, shared by both routes and switched
+   by intent. */
+
 import { Form, Link, useNavigation } from "react-router";
 
 import { AUTH } from "~/content";

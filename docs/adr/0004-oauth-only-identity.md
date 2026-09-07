@@ -2,10 +2,13 @@
 
 **Status:** Superseded by [0008](0008-demo-credentials.md) · 2026-08-28, superseded 2026-08-31
 
-> Superseded because Missed Mix is a demonstration rather than a service, and
-> asking a reviewer to authorise a real Google or Discord identity against a
-> throwaway project was the wrong trade. Everything below still holds for a real
-> service, and 0008 inherits the obligations it lists rather than dismissing them.
+> **Nothing below describes the app as it is built.** Sign-in is a username and a
+> password ([ADR 0008](0008-demo-credentials.md)). There is no OAuth, no provider
+> is contacted, and no Google or Discord identity is ever requested. This record is
+> kept because the reasoning still holds for a real service, and 0008 inherits the
+> obligations it lists rather than dismissing them. It was superseded because
+> asking a reviewer to authorise a real identity against a throwaway demonstration
+> was the wrong trade.
 
 ## Context
 
@@ -50,8 +53,8 @@ unfurling a URL.
   by design.
 - An email address still arrives from the provider and is still personal data. It
   is never rendered to another user.
-- Account deletion has to remove the provider link as well as the profile. That
-  lands in stage 9 with the rest of the data-rights work.
+- Account deletion has to remove the provider link as well as the profile, along
+  with the rest of the data-rights work.
 - If a third provider is ever added, `providerSchema` in `app/lib/auth.ts` is the
   only list to change: the UI iterates the same schema the action validates
   against, so the two cannot drift.

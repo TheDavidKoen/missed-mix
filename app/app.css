@@ -1,3 +1,7 @@
+/* app.css — Design tokens, and the few components Tailwind utilities cannot express: the
+   dock bubbles, the stack sheet's open and close transitions, and the native details
+   animation. */
+
 @import "tailwindcss" source(".");
 @import "@fontsource-variable/figtree";
 
@@ -23,27 +27,18 @@
   --radius-pill: 500px;
 
   --ease-expand: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @layer components {
-  /* Both bubbles position from these, so the dock stays one column and neither
-     can drift onto the other. Each claims a slot with --launcher-order. */
   :root {
     --dock-size: 3.25rem;
     --dock-gap: 0.65rem;
+    --dock-count: 2;
     --dock-right: 1.25rem;
 
-    /* Below 40rem the offset depends on what the header actually holds, so the
-       dock is never lower than it needs to be. Signed out there is only the
-       wordmark, which ends at x=125, leaving the right of that row empty down to
-       the hero at 132px. Signed in there is a log out button ending at 66px, and
-       once a profile exists the navigation wraps onto its own row ending at
-       118px. Each value clears its own case and no more.
-
-       :has keeps this in CSS. The bubbles are fixed and sit outside the layout,
-       so they are not descendants of the header and a class on it could not
-       reach them; the alternative was threading state down to the document
-       shell. */
     --dock-top: 1.25rem;
   }
 
@@ -70,13 +65,11 @@
     border-radius: 50%;
     cursor: pointer;
     transition:
-      transform 0.28s var(--ease-expand),
-      border-color 0.28s var(--ease-expand),
-      box-shadow 0.28s var(--ease-expand);
+      transform 0.28s var(--ease-out-quint),
+      border-color 0.28s var(--ease-out-quint),
+      box-shadow 0.28s var(--ease-out-quint);
   }
 
-  /* Above 40rem the navigation returns to the first row, so every case shares
-     one header height of 86px and one offset. */
   @media (width >= 40rem) {
     :root,
     :root:has([action="/logout"]),
@@ -92,9 +85,30 @@
     box-shadow: 0 10px 24px rgb(0 0 0 / 0.55);
   }
 
-  /* Masked rather than embedded, so the file in public/ stays the single source
-     of the shape and the colour is set here. An <img> could not be recoloured,
-     because page CSS does not reach inside it. */
+  .launcher--stowable {
+    transition:
+      transform 0.46s var(--ease-spring) calc((var(--launcher-order) - 1) * 0.07s),
+      opacity 0.24s linear calc((var(--launcher-order) - 1) * 0.07s),
+      border-color 0.28s var(--ease-out-quint),
+      box-shadow 0.28s var(--ease-out-quint);
+  }
+
+  .launcher--stowable:hover {
+    transition:
+      transform 0.28s var(--ease-out-quint),
+      border-color 0.28s var(--ease-out-quint),
+      box-shadow 0.28s var(--ease-out-quint);
+  }
+
+  html[data-dock="closed"] .launcher--stowable {
+    transform: translateY(calc(var(--launcher-order) * (var(--dock-size) + var(--dock-gap)) * -1))
+      scale(0.2);
+    opacity: 0;
+    transition:
+      transform 0.3s var(--ease-in-expo) calc((var(--dock-count) - var(--launcher-order)) * 0.05s),
+      opacity 0.2s linear calc((var(--dock-count) - var(--launcher-order)) * 0.05s);
+  }
+
   .launcher__mark {
     width: 1.6rem;
     height: 1.6rem;
@@ -105,7 +119,14 @@
     mask-size: contain;
   }
 
-  /* A brand mark keeps its own colours, so it is an image rather than a mask. */
+  .launcher--toggle .launcher__mark {
+    transition: transform 0.4s var(--ease-spring);
+  }
+
+  .launcher--toggle[aria-expanded="true"] .launcher__mark {
+    transform: rotate(135deg);
+  }
+
   .launcher__image {
     width: 1.7rem;
     height: 1.7rem;
@@ -128,7 +149,7 @@
     pointer-events: none;
     transition:
       opacity 0.2s linear,
-      transform 0.26s var(--ease-expand);
+      transform 0.26s var(--ease-out-quint);
   }
 
   .launcher__tip::after {
@@ -147,8 +168,6 @@
     transform: translateY(-50%) translateX(0);
   }
 
-  /* inset plus auto margins is what actually centres a modal dialog; the user
-     agent default only centres horizontally once a max-height is set. */
   .sheet {
     inset: 0;
     margin: auto;
@@ -156,8 +175,6 @@
     max-height: 84vh;
     padding: 0;
 
-    /* The dialog itself must never scroll, or it grows a scrollbar alongside
-       the body's and the header scrolls away with the content. */
     overflow: hidden;
     color: var(--color-ink);
     background-color: var(--color-surface);
@@ -165,8 +182,6 @@
     border-radius: 1rem;
     opacity: 0;
     transform: scale(0.92);
-
-    /* Closing is quick and linear so dismissing feels immediate. */
     transition:
       opacity 0.16s ease-in,
       transform 0.18s ease-in,
@@ -174,8 +189,6 @@
       overlay 0.18s allow-discrete;
   }
 
-  /* flex, not block: the body then takes the leftover height and scrolls on its
-     own rather than sharing one scroll container with the header. */
   .sheet[open] {
     display: flex;
     flex-direction: column;
@@ -183,13 +196,11 @@
     transform: scale(1);
     transition:
       opacity 0.2s linear,
-      transform 0.36s var(--ease-expand),
+      transform 0.36s var(--ease-spring),
       display 0.36s allow-discrete,
       overlay 0.36s allow-discrete;
   }
 
-  /* display and overlay need allow-discrete or the dialog snaps in with no
-     transition; @starting-style supplies the frame to animate from. */
   @starting-style {
     .sheet[open] {
       opacity: 0;
@@ -217,7 +228,6 @@
     }
   }
 
-  /* Outside the scroll container, so the close control is always reachable. */
   .sheet__bar {
     flex-shrink: 0;
     display: flex;
@@ -228,8 +238,6 @@
     border-bottom: 1px solid var(--color-line);
   }
 
-  /* min-height: 0 is what lets a flex child shrink below its content and
-     scroll; without it the body pushes the dialog past its max-height. */
   .sheet__body {
     flex: 1;
     min-height: 0;
@@ -263,12 +271,9 @@
     object-fit: contain;
     object-position: left center;
 
-    /* simple-icons ship solid black, which is invisible on this background. */
     filter: invert(1);
   }
 
-  /* Shortening a transition parks it mid-cycle rather than stopping it, so the
-     motion is removed outright rather than sped up. */
   @media (prefers-reduced-motion: reduce) {
     .launcher,
     .launcher__tip,
@@ -302,7 +307,6 @@
 
 @media (prefers-reduced-motion: no-preference) {
   :root {
-    /* Without this, block-size cannot interpolate to auto and the expand snaps. */
     interpolate-size: allow-keywords;
   }
 

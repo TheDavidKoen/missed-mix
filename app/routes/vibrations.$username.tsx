@@ -1,3 +1,6 @@
+/* vibrations.$username.tsx — One conversation. The loader marks it read and the
+   component polls for new messages while it is on screen. */
+
 import { useEffect, useRef } from "react";
 import { Form, Link, redirect, useRevalidator } from "react-router";
 
@@ -53,9 +56,6 @@ export default function Conversation({ loaderData, actionData }: Route.Component
   const endRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  /* Messages arrive by polling rather than a socket. Durable Objects would be the
-     realtime answer and are the stage 8 plan; this keeps the conversation usable
-     without another binding. */
   useEffect(() => {
     const timer = setInterval(() => {
       if (revalidator.state === "idle") revalidator.revalidate();

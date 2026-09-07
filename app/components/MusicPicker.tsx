@@ -1,3 +1,6 @@
+/* MusicPicker.tsx — Searches Spotify and holds the chosen pick in a hidden input for the
+   surrounding form to submit. */
+
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 
@@ -41,8 +44,6 @@ export function MusicPicker({
 
       <input type="hidden" name={name} value={selected ? JSON.stringify(selected) : ""} />
 
-      {/* The selected row is a column until sm, so the button drops below the name
-          instead of competing with it for a narrow row. */}
       {selected ? (
         <div className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex min-w-0 items-center gap-3 sm:flex-1">

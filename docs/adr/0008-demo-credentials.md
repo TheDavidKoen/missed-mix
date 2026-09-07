@@ -43,17 +43,17 @@ answer here than avoiding it.
 This decision creates obligations that did not exist under 0004. None is optional,
 and each lands with the stage that first makes it reachable.
 
-- **Hashing, stage 2.** PBKDF2-HMAC-SHA-256 through Web Crypto, with a per-user
+- **Hashing.** PBKDF2-HMAC-SHA-256 through Web Crypto, with a per-user
   random salt. bcrypt and Argon2 are not available on the Workers runtime without
   shipping WASM, so PBKDF2 is the pragmatic choice rather than the ideal one. On
   the iteration count, see the amendment below.
-- **Constant-time comparison, stage 2.** Verification compares digests, never
+- **Constant-time comparison.** Verification compares digests, never
   strings.
-- **Generic failures, stage 2.** A failed sign-in says the same thing whether the
+- **Generic failures.** A failed sign-in says the same thing whether the
   username exists or not. Registration cannot avoid revealing that a username is
   taken, which is the argument for usernames rather than email addresses being the
   identifier.
-- **Rate limiting, stage 2 rather than stage 9.** A password endpoint without one
+- **Rate limiting.** A password endpoint without one
   is the flaw the app this replaces actually had. It cannot wait for the general
   hardening pass.
 - **Policy on registration only.** Sign-in validates that fields are present and

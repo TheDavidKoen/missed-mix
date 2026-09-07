@@ -1,9 +1,7 @@
-/* 5,000 iterations is far below the OWASP floor of 600,000 and is chosen against
-   a platform limit, not a threat model: the Workers free plan allows 10 ms of CPU
-   per request, and PBKDF2-SHA-256 measures 14 ms at 10,000 iterations and 108 ms
-   at 100,000. See the amendment to ADR 0008. The count is stored in the hash
-   string, so raising it re-derives on next sign-in rather than invalidating every
-   account. */
+/* password.ts — Password hashing over Web Crypto. hashPassword derives a salted PBKDF2
+   digest, verifyPassword re-derives it with the parameters stored alongside and compares
+   in constant time. */
+
 const ITERATIONS = 5_000;
 const SCHEME = "pbkdf2-sha256";
 const SALT_BYTES = 16;
@@ -19,7 +17,7 @@ function fromBase64(value: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
 }
 
-async function derive(password: string, salt: Uint8Array<ArrayBuffer>, iterations: number) {
+async function deriveKey(password: string, salt: Uint8Array<ArrayBuffer>, iterations: number) {
   const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, [
     "deriveBits",
   ]);
@@ -33,8 +31,6 @@ async function derive(password: string, salt: Uint8Array<ArrayBuffer>, iteration
   return new Uint8Array(bits);
 }
 
-/* Compares every byte regardless of where the first difference is, so the time
-   taken does not reveal how much of a guess was correct. */
 function timingSafeEqual(a: Uint8Array, b: Uint8Array) {
   if (a.length !== b.length) return false;
 
@@ -48,7 +44,7 @@ function timingSafeEqual(a: Uint8Array, b: Uint8Array) {
 
 export async function hashPassword(password: string) {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
-  const derived = await derive(password, salt, ITERATIONS);
+  const derived = await deriveKey(password, salt, ITERATIONS);
 
   return `${SCHEME}$${ITERATIONS}$${toBase64(salt)}$${toBase64(derived)}`;
 }
@@ -60,6 +56,6 @@ export async function verifyPassword(password: string, stored: string) {
   const count = Number(iterations);
   if (!Number.isInteger(count) || count < 1) return false;
 
-  const derived = await derive(password, fromBase64(salt), count);
+  const derived = await deriveKey(password, fromBase64(salt), count);
   return timingSafeEqual(derived, fromBase64(expected));
 }

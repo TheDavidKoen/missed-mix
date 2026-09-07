@@ -1,3 +1,6 @@
+/* register.tsx — Registration. Mirrors login with a different intent, which selects a
+   stricter schema. */
+
 import { AuthPanel } from "~/components/AuthPanel";
 import { AUTH, SITE } from "~/content";
 import { submitCredentials } from "~/lib/auth";
