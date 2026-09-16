@@ -5,7 +5,22 @@ import { Wordmark } from "~/components/Wordmark";
 import { LANDING, SITE } from "~/content";
 
 export function meta() {
-  return [{ title: SITE.name }, { name: "description", content: SITE.description }];
+  const image = `${SITE.url}/og-image.png`;
+
+  return [
+    { title: SITE.name },
+    { name: "description", content: SITE.description },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: SITE.url },
+    { property: "og:title", content: SITE.name },
+    { property: "og:description", content: SITE.description },
+    { property: "og:image", content: image },
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
+    { property: "og:image:alt", content: "The Missed Mix mark beside the product name." },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:image", content: image },
+  ];
 }
 
 export default function Home() {

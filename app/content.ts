@@ -3,6 +3,7 @@
 
 export const SITE = {
   name: "Missed Mix",
+  url: "https://missed-mix.pages.dev",
   description: "Find people whose music taste lines up with yours, then send them a vibration.",
 } as const;
 

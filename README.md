@@ -88,6 +88,7 @@ app/
 ├── components/       UI components, one concern each
 │   ├── AuthPanel     Sign-in and registration form
 │   ├── AvatarField   Avatar upload with a live preview
+│   ├── DockToggle    Expands and collapses the dock
 │   ├── Field         One labelled control, shared by every form
 │   ├── MainNav       Signed-in navigation and the unread badge
 │   ├── MusicPicker   Spotify search and selection
@@ -96,7 +97,7 @@ app/
 │   ├── SiteBubble    Dock bubble linking to the author's site
 │   ├── StackBubble   Dock bubble opening the stack sheet
 │   ├── VibrationPanel  The four states of one pair
-│   └── Wordmark      The product name
+│   └── Wordmark      The lockup: mark and product name
 ├── lib/              Boundary logic. No JSX
 │   ├── auth          Credential schemas, registration, sign-in
 │   ├── avatar        Upload validation and storage
@@ -115,6 +116,11 @@ app/
 ├── app.css         Design tokens in @theme
 ├── root.tsx        Document shell and error boundary
 └── routes.ts       Route table
+public/             Served as-is
+├── favicon.svg       Solid one-colour mark, for tab sizes
+├── apple-touch-icon.png, icon-*.png   Home-screen and install icons
+├── og-image.png      Link preview card, 1200 × 630
+└── site.webmanifest  Install metadata
 workers/            Worker entry for the React Router request handler
 scripts/
 ├── bundle-pages.mjs  Reshapes the Workers build into a Pages bundle
@@ -131,6 +137,14 @@ a sentence is a data edit, and the same string cannot drift between two pages.
 
 **Design tokens live in `@theme`** in `app/app.css`. No raw hex values in
 components.
+
+**The mark is drawn from geometry, not embedded.** `Wordmark` renders the two
+voices as SVG bars sized from the surrounding font, so the lockup scales with its
+text and takes its colour from the accent token. The favicon uses the solid
+one-colour cut, which the brand guidance reserves for sizes under 20 px. Every
+raster icon is square and full-bleed on the canvas colour, because iOS and Android
+apply their own corner masks; the maskable icon keeps the mark inside the circular
+safe zone those masks assume.
 
 ## What it does
 
