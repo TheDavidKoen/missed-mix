@@ -17,5 +17,5 @@ All notable changes to this application are recorded here. The format follows
 - Private conversations between the two participants, with an unread badge in the navigation
 - A dock that expands into a stack sheet describing what the app runs on, and a link out
 - The Missed Mix mark across the header, favicon, install icons and link preview card
-- Security headers with a nonce-based Content Security Policy, set at the edge on every response
+- Security headers on every response, and a nonce-based Content Security Policy on every page
 - CI with type checks, Biome, unit tests, a performance budget, a dependency audit and Lighthouse, plus tagged GitHub releases

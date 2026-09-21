@@ -56,4 +56,4 @@ memory for one minute and never writes it anywhere.
 - CI installs with `--frozen-lockfile`, runs with a read-only token, does not persist checkout credentials, and fails on high or critical advisories in production dependencies
 - Dependency build scripts run only when allowed by name in `pnpm-workspace.yaml`
 - GitHub Actions are pinned to commit SHAs, and Dependabot keeps them and the npm dependencies current
-- No deploy credential exists in this repository: Cloudflare Pages deploys through its own GitHub integration
+- No deploy credential exists in this repository: deployments are made with Wrangler, authenticated on the machine that runs them

@@ -57,7 +57,7 @@ They do different jobs, and you will use both.
 | Reload | HMR, instant | Rebuild required |
 | Database | **No.** The driver cannot load | **Yes.** Real Atlas |
 | Signed-in pages | No, you cannot log in | **Yes** |
-| Security headers | No | Yes |
+| Security headers and CSP | No | Yes |
 | Secrets | Loaded | Loaded via `--env-file .dev.vars` |
 
 Use `pnpm dev` for anything visual: pages, layout, copy, styles, validation and
@@ -241,18 +241,21 @@ the stylesheet reaching out to Google Fonts.
 
 ## Deployment
 
-Cloudflare Pages, built from `main` on every push through Cloudflare's GitHub
-integration. Pull requests get their own preview URL.
+Cloudflare Pages, deployed by hand from `main` after a pull request merges. The
+project is not connected to GitHub, so pushing does not deploy.
 
-| Setting | Value |
-|---|---|
-| Framework preset | None |
-| Build command | `pnpm run pages:build` |
-| Output directory | `build/client` |
-| Node version | `.node-version` (24.14.1) |
+```sh
+pnpm run pages:build
+pnpm exec wrangler pages deploy build/client --project-name missed-mix --branch main
+```
 
-The connection string, session secret and Spotify credentials are set as encrypted
-variables in the Pages project, for production and preview separately.
+`--branch main` makes it a production deployment. Without it the upload becomes a
+preview.
+
+The connection string, database name, session secret and Spotify credentials are
+encrypted variables in the Pages project. `wrangler pages secret put <KEY>
+--project-name missed-mix` sets a production value from stdin; preview values are
+set in the dashboard.
 
 `wrangler.jsonc` configures the Worker for local development and type generation.
 It has no `pages_build_output_dir`, so Pages does not treat it as its source of
@@ -301,26 +304,17 @@ A `pnpm patch` of `tr46`, a Vite `resolve.alias` and `ssr.noExternal` were each
 tried and none fixed it, so all three were removed rather than left implying a fix
 that does not exist.
 
-**`wrangler pages dev` does not inject `.dev.vars`.** It prints "Using secrets
+**`wrangler pages dev` needs `--env-file`.** Without it, it prints "Using secrets
 defined in .dev.vars" and lists them, then hands an advanced-mode `_worker.js` an
-env containing only `CF_PAGES*` and `ASSETS`. So the second local route to
-testing auth is closed too.
-
-Together those two mean **auth is verified by deploying, not locally**. A deployed
-Pages project injects secrets normally and has none of these problems.
-
-```sh
-pnpm run pages:build
-pnpm exec wrangler pages deploy build/client --project-name missed-mix --branch main
-```
-
-Secrets go up with `wrangler pages secret put <KEY> --project-name missed-mix`,
-which reads the value from stdin and writes to **production only**; Preview
-secrets have to be set in the dashboard.
+env containing only `CF_PAGES*` and `ASSETS`, so nothing that needs a secret
+works. `pnpm preview` passes `--env-file .dev.vars`, which is why sign-in and the
+database work there.
 
 **Node's SRV lookup can fail on Windows.** `pnpm run init-db` dies with
 `querySrv ECONNREFUSED` when c-ares falls back to `127.0.0.1`. Set
-`DNS_SERVERS` in `.dev.vars`.
+`DNS_SERVERS` in `.dev.vars` to a public resolver such as `1.1.1.1`. A router
+address works only on the network it belongs to, and fails elsewhere with
+`querySrv ETIMEOUT`.
 
 **`pnpm create cloudflare` fails on Windows.** It shells out to `pnpm dlx`, which
 trips over a stale symlink in the pnpm store. Use `npm create cloudflare` and swap
