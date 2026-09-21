@@ -3,7 +3,8 @@
 ## Branching
 
 `main` is always deployable. Work happens on short-lived branches merged via
-pull request.
+pull request. Pull requests are squash merged, so the pull request title becomes the commit
+subject and must follow the commit format below.
 
 | Prefix | For |
 |---|---|
@@ -11,9 +12,9 @@ pull request.
 | `fix/` | Correcting broken behaviour |
 | `chore/` | Tooling, dependencies, config |
 | `docs/` | Documentation only |
-| `refactor/` | Restructuring without behaviour change |
+| `refactor/` | Restructuring with no behaviour change |
 
-Branches are deleted once merged — see
+Branches are deleted once merged, see
 [ADR 0003](docs/adr/0003-github-flow.md). A merged branch is spent: GitHub will
 not reopen its pull request for new commits, so further work starts a fresh
 branch off `main`.
@@ -26,20 +27,15 @@ git pull
 git checkout -b feat/thing
 ```
 
-One build stage is one branch and one pull request. The stage list is in the
-[README](README.md#what-it-does).
-
 ## Commits
 
-[Conventional Commits](https://www.conventionalcommits.org/). Subject in the
-imperative, under ~70 characters. Use the body to explain *why*, not what.
+[Conventional Commits](https://www.conventionalcommits.org/). One short subject in the
+imperative, under about 70 characters, naming the kind of change rather than listing every edit.
+Authorship is visible on GitHub, so no author or co-author lines.
 
 ```
-feat: send vibrations from the discovery feed
-
-A vibration is an insert plus a rate limit check, not a message. The
-recipient sees it as a notification and the conversation row is only
-created on accept, so a declined vibration leaves nothing behind.
+feat: add conversations to vibrations
+docs: update the documentation
 ```
 
 ## Before opening a pull request
@@ -48,81 +44,63 @@ created on accept, so a declined vibration leaves nothing behind.
 pnpm verify
 ```
 
-That runs the type checks then Biome. Both must be clean. Also build the Pages
-bundle and run the budget, since some failures only surface there:
-
-```sh
-pnpm run pages:build
-pnpm run budget
-```
-
-CI runs all of this plus Lighthouse on every pull request, so a red check means
-one of these failed. Reproduce it locally rather than pushing again to see.
+That runs the type checks, Biome, the unit tests, the Pages bundle and the performance budget.
+All must be clean. CI runs the same steps, then a dependency audit and Lighthouse, so a red check
+means one of them failed. Reproduce it locally rather than pushing again to see.
 
 Then check, by eye:
 
 - The page at a narrow width, a laptop width, and something ultrawide
 - Every control reachable by keyboard, with a visible focus ring
 - Anything animated with reduced motion enabled in OS settings
-- The rendered page through `pnpm preview`, not just `pnpm dev`, if the change
-  touches response headers, asset serving or the worker entry
+- The rendered page through `pnpm preview`, not just `pnpm dev`, if the change touches
+  response headers, the Content Security Policy, asset serving or the worker entry
 
 ## Code conventions
 
-**Copy goes in `app/content.ts`,** not in components. Components receive it as
-data. Changing a sentence should be a data edit, and no string should exist in
-two places.
+**Copy goes in `app/content.ts`,** not in components. Components receive it as data, so
+changing a sentence is a data edit and no string exists in two places.
 
-**Design tokens go in `@theme`** in `app/app.css`. No raw hex values or magic
-numbers in components. The accent is one token: moving the whole app off its
-current green is a one-line change.
+**Design tokens go in `@theme`** in `app/app.css`. No raw hex values or magic numbers in
+components.
 
-**Validate at the boundary, with Zod, before anything else runs.** Every value
-arriving from a form, a query string, a cookie or a third-party API is untrusted
-until a schema has parsed it. Schemas live in `app/lib/` so the same one can be
-reused by the form, the action and the database layer.
+**Validate at the boundary, with Zod, before anything else runs.** Every value arriving from a
+form, a query string, a cookie or a third-party API is untrusted until a schema has parsed it.
 
-**Never widen what a query returns.** The legacy app this replaces had an
-endpoint that handed every user's full record, message text included, to any
-authenticated caller. Select the columns a screen needs.
+**Never widen what a query returns.** The legacy app this replaces had an endpoint that handed
+every user's full record, message text included, to any authenticated caller. Select the fields
+a screen needs.
 
-**One comment per file, at the top of it.** Every source file opens with a header
-naming the file, what it is for, and the functions or loops that carry its weight.
-Nothing else is commented: no inline notes, no section markers, no explanations of
-what the next line does. Rationale belongs in an ADR, and everything else belongs
-in a name.
+**Prefer less code.** Reach for an array method or a named function before a hand-written loop,
+and delete what nothing uses.
+
+**Comments mark traps, not intentions.** Write one only where a developer could break something
+without it: a cross-file contract, a load-bearing value, a non-obvious constraint. A file gets a
+header only when its role is not clear from its name. Rationale belongs in an ADR. Prefer
+expressive naming over a comment.
 
 Good:
 
-```js
-/* avatar.ts — Avatar storage. storeAvatar checks the size and sniffs the magic
-   number before writing the bytes, readAvatar returns them with the type it
-   recorded. */
+```ts
+/* Visits every byte whatever it finds, so the time taken reveals nothing about where a
+   guess first went wrong. An early return here would reopen a timing side channel. */
 ```
 
 Not worth writing:
 
-```js
+```ts
 /* Render a label and an input for each field. */
 ```
 
-If a line needs an inline comment to be safe, the fix is usually a named constant
-or a named function, not the comment.
+**No emojis or em dashes anywhere:** code, comments, documentation, copy or commit messages.
 
-**Prose in rendered copy, comments and metadata uses no em dashes.** The separator
-between a filename and its purpose in a file header is not prose and is exempt.
-Markdown documentation is exempt and uses them freely.
+**Tests sit beside the module they cover,** as `name.test.ts`.
 
-**Animated components handle `prefers-reduced-motion` themselves.** Gate the
-transition, not just its duration: shortening a duration parks an animation
-mid-cycle instead of stopping it.
+**Animated components handle `prefers-reduced-motion` themselves.** Gate the transition, not
+just its duration: shortening a duration parks an animation mid-cycle instead of stopping it.
 
 ## Recording a decision
 
 Anything a future reader would otherwise reverse by accident gets an ADR in
 `docs/adr/`, numbered in sequence, following the existing format. Superseded
 records stay in place with their status changed.
-
-Two of the current ADRs are enforced by `pnpm run budget` rather than by review,
-because breaking them changes nothing you can see: the site keeps serving and
-every page keeps rendering.

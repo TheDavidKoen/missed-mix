@@ -1,7 +1,3 @@
-/* Wordmark.tsx — The Missed Mix lockup: the two-voice mark set beside the product name.
-   The mark is drawn at the height of the surrounding font, so the lockup keeps its
-   proportions under whatever text class it is given. */
-
 const LEAD = [
   [5, 11, 32],
   [5, 22, 16],

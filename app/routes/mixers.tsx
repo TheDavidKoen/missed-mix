@@ -1,23 +1,19 @@
-/* mixers.tsx — Everyone else on the app, with the one song each has chosen as current. */
-
-import { Link, redirect } from "react-router";
+import { Link } from "react-router";
 
 import { MIXERS, SITE } from "~/content";
-import { cloudflareContext } from "~/lib/context";
+import { cloudflareContext, viewerContext } from "~/lib/context";
 import { listOtherProfiles } from "~/lib/profile";
-import { currentUsername } from "~/lib/session";
 import type { Route } from "./+types/mixers";
 
 export function meta() {
   return [{ title: `Mixers | ${SITE.name}` }, { name: "robots", content: "noindex" }];
 }
 
-export async function loader({ request, context }: Route.LoaderArgs) {
+export async function loader({ context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
-  const username = await currentUsername(request, env);
-  if (!username) throw redirect("/login");
+  const { usernameLower } = context.get(viewerContext);
 
-  return { profiles: await listOtherProfiles(env, username.toLowerCase()) };
+  return { profiles: await listOtherProfiles(env, usernameLower) };
 }
 
 export default function Mixers({ loaderData }: Route.ComponentProps) {

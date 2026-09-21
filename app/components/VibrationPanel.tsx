@@ -1,6 +1,3 @@
-/* VibrationPanel.tsx — The four states one pair can be in: conversation open, waiting on
-   this viewer to accept, already sent, or nothing yet. */
-
 import { Form } from "react-router";
 
 import { MusicPicker } from "~/components/MusicPicker";

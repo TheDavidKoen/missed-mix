@@ -1,5 +1,3 @@
-/* SiteBubble.tsx — The dock's second bubble, linking to the author's site. */
-
 import { DOCK } from "~/content";
 
 export function SiteBubble() {

@@ -1,5 +1,6 @@
 {
   "name": "missed-mix",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.22.0",
@@ -14,11 +15,11 @@
     "typecheck": "wrangler types && react-router typegen && tsc -b",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "verify": "pnpm run typecheck && pnpm run lint",
+    "test": "vitest run",
     "budget": "node scripts/check-budget.mjs",
-    "cf-typegen": "wrangler types",
-    "postinstall": "wrangler types",
-    "init-db": "node scripts/init-db.mjs"
+    "verify": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run pages:build && pnpm run budget",
+    "init-db": "node scripts/init-db.mjs",
+    "postinstall": "wrangler types"
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.3.0",
@@ -41,6 +42,7 @@
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
+    "vitest": "5.0.1",
     "wrangler": "^4.127.0"
   }
 }

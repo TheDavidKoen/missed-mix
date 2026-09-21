@@ -1,13 +1,9 @@
-/* vibrations.$username.tsx — One conversation. The loader marks it read and the
-   component polls for new messages while it is on screen. */
-
 import { useEffect, useRef } from "react";
-import { Form, isRouteErrorResponse, Link, redirect, useRevalidator } from "react-router";
+import { Form, isRouteErrorResponse, Link, useRevalidator } from "react-router";
 
 import { PillButton, PillLink } from "~/components/Pill";
 import { SITE, VIBRATION } from "~/content";
-import { cloudflareContext } from "~/lib/context";
-import { currentUsername } from "~/lib/session";
+import { cloudflareContext, viewerContext } from "~/lib/context";
 import { conversation, postMessage } from "~/lib/vibrations";
 import type { Route } from "./+types/vibrations.$username";
 
@@ -18,33 +14,25 @@ export function meta({ params }: Route.MetaArgs) {
   return [{ title: `${params.username} | ${SITE.name}` }, { name: "robots", content: "noindex" }];
 }
 
-export async function loader({ request, context, params }: Route.LoaderArgs) {
+export async function loader({ context, params }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
-  const username = await currentUsername(request, env);
-  if (!username) throw redirect("/login");
-
+  const me = context.get(viewerContext).usernameLower;
   const other = params.username.toLowerCase();
-  const found = await conversation(env, username.toLowerCase(), other);
+  const found = await conversation(env, me, other);
   if (!found) throw new Response("Not found", { status: 404 });
 
-  return { me: username.toLowerCase(), other, thread: found.thread, song: found.vibration.song };
+  return { me, other, thread: found.thread, song: found.vibration.song };
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
-  const username = await currentUsername(request, env);
-  if (!username) throw redirect("/login");
+  const me = context.get(viewerContext).usernameLower;
 
   const body = String((await request.formData()).get("body") ?? "").trim();
   if (!body) return { error: "Write something first." };
   if (body.length > MAX_BODY) return { error: "That message is too long." };
 
-  const outcome = await postMessage(
-    env,
-    username.toLowerCase(),
-    params.username.toLowerCase(),
-    body,
-  );
+  const outcome = await postMessage(env, me, params.username.toLowerCase(), body);
   if (outcome !== "posted") return { error: "This conversation is not open." };
 
   return { error: null };

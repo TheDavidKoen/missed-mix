@@ -1,5 +1,5 @@
-/* auth.ts — Registration and sign-in. submitCredentials validates the form and delegates
-   to createAccount or authenticate, returning field errors rather than throwing. */
+/* Registration and sign-in. Failures return field errors rather than throwing, and never
+   reveal whether a username exists. */
 
 import { data } from "react-router";
 import { z } from "zod";
@@ -35,6 +35,8 @@ export type AuthResult = {
   username?: string;
 };
 
+/* Verified against when no account matches, so a missing username costs the same time as
+   a wrong password and cannot be discovered by timing. */
 const ABSENT_ACCOUNT_HASH =
   "pbkdf2-sha256$5000$NsnXodM+pxiubKG3HpeEhg==$8g/MkZbo8y2CkA04FQc0fHL2Hb8z5KwB0Q9ITRSRzfI=";
 

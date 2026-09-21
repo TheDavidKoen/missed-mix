@@ -1,5 +1,5 @@
-/* app.ts — Worker entry. Opens one database session per request, runs the React Router
-   handler inside it, and closes the session once the response is on its way. */
+/* Worker entry. Every request gets one database session, opened before the router runs
+   and closed after the response is sent, so all its loaders share a single connection. */
 
 import { createRequestHandler, RouterContextProvider } from "react-router";
 

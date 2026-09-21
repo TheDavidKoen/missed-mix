@@ -1,5 +1,5 @@
-/* check-budget.mjs — Fails the build when the client bundle, stylesheet or fonts exceed
-   their budgets, or when the edge entry has lost one of its guards. */
+/* Fails the build when the shipped assets exceed their budgets, or when the edge entry
+   has lost a guard. Enforces docs/performance.md and the regressions in ADR 0002. */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -7,12 +7,12 @@ import { gzipSync } from "node:zlib";
 
 const CLIENT = "build/client";
 const WORKER = join(CLIENT, "_worker.js");
+const BUDGET_KB = { js: 125, css: 8, woff2: 35 };
 
-const BUDGET = {
-  clientJsKb: 125,
-  cssKb: 8,
-  fontKb: 35,
-};
+if (!existsSync(WORKER)) {
+  console.error(`No ${WORKER}. Run "pnpm run pages:build" before the budget check.`);
+  process.exit(1);
+}
 
 const walk = (dir) =>
   readdirSync(dir).flatMap((entry) => {
@@ -20,73 +20,52 @@ const walk = (dir) =>
     return statSync(path).isDirectory() ? walk(path) : [path];
   });
 
-const gzipKb = (path) => gzipSync(readFileSync(path)).length / 1024;
-const sum = (files) => files.reduce((total, file) => total + gzipKb(file), 0);
-
-if (!existsSync(WORKER)) {
-  console.error(`No ${WORKER}. Run "pnpm run pages:build" before the budget check.`);
-  process.exit(1);
-}
-
 const shipped = walk(CLIENT).filter((file) => !file.includes("_worker.js"));
+const ofType = (extension) => shipped.filter((file) => file.endsWith(`.${extension}`));
+const gzipKb = (files) =>
+  files.reduce((total, file) => total + gzipSync(readFileSync(file)).length / 1024, 0);
 
-const jsKb = sum(shipped.filter((f) => f.endsWith(".js")));
-const cssKb = sum(shipped.filter((f) => f.endsWith(".css")));
-const fontKb = sum(shipped.filter((f) => f.endsWith(".woff2")));
+const measured = Object.fromEntries(
+  Object.keys(BUDGET_KB).map((extension) => [extension, gzipKb(ofType(extension))]),
+);
+const styles = ofType("css")
+  .map((file) => readFileSync(file, "utf8"))
+  .join("\n");
+const entry = readFileSync(join(WORKER, "index.js"), "utf8");
+const serverFile = (name) => existsSync(join(WORKER, "server", name));
 
-const failures = [];
-const report = [
-  `client js  ${jsKb.toFixed(1)} KB gzip  (budget ${BUDGET.clientJsKb})`,
-  `css        ${cssKb.toFixed(1)} KB gzip  (budget ${BUDGET.cssKb})`,
-  `fonts      ${fontKb.toFixed(1)} KB gzip  (budget ${BUDGET.fontKb})`,
+const guards = [
+  ...Object.entries(BUDGET_KB).map(([extension, budget]) => [
+    measured[extension] > budget,
+    `${extension} ${measured[extension].toFixed(1)} KB exceeds ${budget} KB`,
+  ]),
+  [/fonts\.(googleapis|gstatic)\.com/.test(styles), "built CSS reaches out to Google Fonts"],
+  [!measured.woff2, "no self-hosted font files in the build"],
+  [!entry.includes('startsWith("/_worker.js/")'), "entry has no _worker.js guard"],
+  [!entry.includes("strict-dynamic"), "entry no longer sets a nonce-based Content Security Policy"],
+  ...["X-Content-Type-Options", "X-Frame-Options", "Referrer-Policy"].map((header) => [
+    !entry.includes(header),
+    `entry no longer sets ${header}`,
+  ]),
+  [existsSync(join(CLIENT, ".vite")), ".vite build manifest would be served"],
+  [serverFile("wrangler.json"), "Workers deploy pointer left in the bundle"],
+  [serverFile(".dev.vars"), ".dev.vars is inside the deployable bundle"],
 ];
 
-if (jsKb > BUDGET.clientJsKb) {
-  failures.push(`client JS ${jsKb.toFixed(1)} KB exceeds ${BUDGET.clientJsKb} KB`);
-}
-if (cssKb > BUDGET.cssKb) {
-  failures.push(`CSS ${cssKb.toFixed(1)} KB exceeds ${BUDGET.cssKb} KB`);
-}
-if (fontKb > BUDGET.fontKb) {
-  failures.push(`fonts ${fontKb.toFixed(1)} KB exceeds ${BUDGET.fontKb} KB`);
-}
+const failures = guards.filter(([failed]) => failed).map(([, message]) => message);
 
-const styles = shipped
-  .filter((f) => f.endsWith(".css"))
-  .map((f) => readFileSync(f, "utf8"))
-  .join("\n");
-
-if (/fonts\.(googleapis|gstatic)\.com/.test(styles)) {
-  failures.push("built CSS reaches out to Google Fonts, fonts are meant to be self-hosted");
-}
-if (!fontKb) {
-  failures.push("no self-hosted font files in the build");
-}
-
-const entry = readFileSync(join(WORKER, "index.js"), "utf8");
-
-if (!entry.includes('startsWith("/_worker.js/")')) {
-  failures.push("Pages entry has no _worker.js guard, the server bundle is publicly readable");
-}
-for (const header of ["X-Content-Type-Options", "X-Frame-Options", "Referrer-Policy"]) {
-  if (!entry.includes(header)) failures.push(`Pages entry no longer sets ${header}`);
-}
-if (existsSync(join(CLIENT, ".vite"))) {
-  failures.push(".vite build manifest is still in the output and would be served");
-}
-if (existsSync(join(WORKER, "server", "wrangler.json"))) {
-  failures.push("Workers deploy pointer left in the bundle, wrangler pages will follow it");
-}
-if (existsSync(join(WORKER, "server", ".dev.vars"))) {
-  failures.push(".dev.vars is inside the deployable bundle, every secret with it");
-}
-
-report.push(`edge guards ${failures.length ? "BROKEN" : "intact"}`);
-console.log(report.map((line) => `  ${line}`).join("\n"));
+console.log(
+  Object.entries(BUDGET_KB)
+    .map(
+      ([ext, budget]) =>
+        `  ${ext.padEnd(6)} ${measured[ext].toFixed(1)} KB gzip  (budget ${budget})`,
+    )
+    .concat(`  edge guards ${failures.length ? "BROKEN" : "intact"}`)
+    .join("\n"),
+);
 
 if (failures.length) {
-  console.error("\nBudget check failed:");
-  for (const failure of failures) console.error(`  - ${failure}`);
+  console.error(`\nBudget check failed:\n${failures.map((f) => `  - ${f}`).join("\n")}`);
   process.exit(1);
 }
 

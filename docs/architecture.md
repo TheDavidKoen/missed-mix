@@ -47,6 +47,11 @@ because React Router 8 ships no Pages adapter. See
 | Copy | `app/content.ts` | Every user-facing string. |
 | Tokens | `app/app.css` | Colour, type, radius, easing, under `@theme`. |
 
+In MVC terms, a route module is the controller and the view for one URL: its loader and
+action handle the request, and its component renders the result. `app/lib/` is the model.
+React Router colocates the first two by design, so the layers are kept apart by these rules
+rather than by folders named after them.
+
 Route modules stay thin on purpose. `app/routes/login.tsx` is seventeen lines: its
 action calls `submitCredentials` and its component renders `AuthPanel`. All of the
 work, validation, hashing, the Atlas round trip and the session cookie, lives in
@@ -130,7 +135,7 @@ arguments would have to reach every loader, action and helper, and each one woul
 gain a parameter it does not otherwise need. Instead `withDb(env, run)` is unchanged
 everywhere it is called, and picks the connection up from the ambient session.
 
-Called with no session — a script, or a test — `withDb` opens its own connection and
+Called with no session, from a script or a test, `withDb` opens its own connection and
 closes it, so nothing depends on being inside a request to work.
 
 The session caches the *promise*, not the resolved handle. Loaders on one page run
@@ -150,13 +155,12 @@ difference is round trips over an open socket rather than new handshakes.
 `/vibrations`. It owns the one profile read the header and its children share, and
 the header itself.
 
-It does not own the session check. Every loader and action repeats the redirect to
-`/login`, ten times across eight files. Half of those are unavoidable: a parent
-layout's loader does not run for a child's action, so each action has to check for
-itself. The loader half is redundant, and each redundant check re-verifies the
-signed cookie. Route middleware, stable since React Router 8.3, would resolve the
-viewer once for both and remove all ten. Until that lands the duplication is real,
-and is described here rather than wished away.
+The session check lives in the layout's middleware, `requireViewer`, rather than in
+its loader. A layout loader does not run for a child's action, so a check placed there
+would leave every action unguarded. Middleware runs before every loader and action beneath
+the layout, redirects to `/login` without a session, and puts the viewer into the router
+context, where child routes read it with `context.get(viewerContext)`. The two resource
+routes outside the layout, search and avatars, answer `401` instead of redirecting.
 
 The navigation only renders once a profile exists. Registration lands on `/profile`
 with an empty form, and there is nothing useful to browse until it is filled in.
@@ -258,7 +262,7 @@ In place now:
 | Response headers | Set at the edge entry, asserted by `pnpm run budget` |
 | Server bundle | Not reachable over HTTP |
 | Input validation | Zod at every boundary |
-| Third-party requests | None from the browser. The server reaches Atlas ([ADR 0009](adr/0009-mongodb-atlas-over-d1.md)) |
+| Third-party requests | From the browser, only artwork from Spotify's image host. The server reaches Atlas and the Spotify API ([ADR 0009](adr/0009-mongodb-atlas-over-d1.md)) |
 | Sign-in submission | `POST` only, so credentials never reach a URL or a log |
 | Password hashing | PBKDF2-HMAC-SHA-256, per-user salt, digests compared in constant time |
 | Session cookie | Signed, `HttpOnly`, `SameSite=Lax`, `Secure` in production, 7 days |
@@ -270,20 +274,22 @@ In place now:
 | Avatar access | Session required; avatars live in the database, never on public storage |
 | Third-party image URLs | Restricted to Spotify's CDN on save, so a profile cannot embed an arbitrary tracker |
 | Search endpoint | Requires a session, so it is not an open proxy to our Spotify quota |
+| Content Security Policy | Scripts run only with a fresh per-response nonce, stamped at the edge |
+| Security headers | HSTS, frame denial, `nosniff`, referrer and permissions policies, opener isolation |
 
 Not implemented, and named here rather than left for a reader to find:
 
 | Gap | Consequence |
 |---|---|
-| CSRF tokens | A cross-site form post can reach an action carrying the viewer's cookie |
+| CSRF tokens | Mitigated rather than absent: `SameSite=Lax` keeps the session cookie off cross-site form posts |
 | Rate limiting beyond sign-in and search | Vibrations and messages have no budget |
-| Content Security Policy | An injected script would not be stopped by policy |
 | Data export and account deletion | A viewer cannot retrieve or remove their own record |
 | Blocking and reporting | Nothing stops an unwanted vibration but ignoring it |
 
-A Content Security Policy is the one with an obstacle rather than an absence of
-work. React Router inlines hydration state in a `<script>` tag, so a policy strict
-enough to be worth setting needs a per-response nonce threaded through the document.
+React Router inlines hydration state in `<script>` tags that change on every request,
+so no hash can cover them. The edge entry generates a nonce per response, stamps it onto
+every script and module preload with `HTMLRewriter` as the HTML streams through, and sends
+a policy that trusts only what carries it. Nothing inside React Router needed to change.
 
 None of these would be acceptable in a service holding real accounts. All of them
 are survivable here, where every account is disposable and nothing stored is real

@@ -1,5 +1,3 @@
-/* PickTile.tsx — One answered prompt, read only, as shown on somebody else's profile. */
-
 import type { MusicPick } from "~/lib/spotify";
 
 export function PickTile({

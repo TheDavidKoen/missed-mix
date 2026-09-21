@@ -1,4 +1,4 @@
-# 0012 — Mixers lists everyone, and ranks nobody
+# 0012. Mixers lists everyone, and ranks nobody
 
 **Status:** Accepted · 2026-09-01 · supersedes [0011](0011-musicbrainz-for-genres.md)
 

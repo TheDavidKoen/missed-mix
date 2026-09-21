@@ -1,4 +1,4 @@
-# 0008 — Username and password credentials for the demo
+# 0008. Username and password credentials for the demo
 
 **Status:** Accepted · 2026-08-31 · supersedes [0004](0004-oauth-only-identity.md)
 

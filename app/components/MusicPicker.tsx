@@ -1,6 +1,3 @@
-/* MusicPicker.tsx — Searches Spotify and holds the chosen pick in a hidden input for the
-   surrounding form to submit. */
-
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 

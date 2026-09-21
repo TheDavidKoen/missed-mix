@@ -1,4 +1,4 @@
-# 0011 — MusicBrainz for genres, because Spotify stopped supplying them
+# 0011. MusicBrainz for genres, because Spotify stopped supplying them
 
 **Status:** Superseded by [0012](0012-mixers-lists-everyone.md) · 2026-09-01
 

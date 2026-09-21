@@ -1,4 +1,4 @@
-# 0005 — Self-hosted fonts over Google Fonts
+# 0005. Self-hosted fonts over Google Fonts
 
 **Status:** Accepted · 2026-08-28
 

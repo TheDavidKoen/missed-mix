@@ -1,7 +1,6 @@
-/* session.ts — Signed cookie sessions. currentUsername reads the viewer out of a
-   request, startSession and endSession issue and clear the cookie. */
+import { createCookieSessionStorage, type MiddlewareFunction, redirect } from "react-router";
 
-import { createCookieSessionStorage, redirect } from "react-router";
+import { cloudflareContext, viewerContext } from "./context";
 
 function sessionStorage(env: Env) {
   return createCookieSessionStorage<{ username: string }>({
@@ -23,6 +22,15 @@ export async function currentUsername(request: Request, env: Env) {
 
   return typeof username === "string" ? username : null;
 }
+
+/* Runs before every loader and action under the signed-in layout, including a child's
+   action, which a layout loader alone would not cover. */
+export const requireViewer: MiddlewareFunction<Response> = async ({ request, context }) => {
+  const username = await currentUsername(request, context.get(cloudflareContext).env);
+  if (!username) throw redirect("/login");
+
+  context.set(viewerContext, { username, usernameLower: username.toLowerCase() });
+};
 
 export async function startSession(env: Env, username: string, to: string) {
   const storage = sessionStorage(env);

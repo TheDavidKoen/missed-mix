@@ -1,5 +1,3 @@
-/* env.d.ts — Types for the bindings and secrets the Worker receives. */
-
 interface MissedMixSecrets {
   MONGODB_URI: string;
   MONGODB_DB: string;

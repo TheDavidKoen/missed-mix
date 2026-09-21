@@ -1,5 +1,3 @@
-/* home.tsx — Landing page. The only route a signed-out visitor is meant to arrive on. */
-
 import { PillLink } from "~/components/Pill";
 import { Wordmark } from "~/components/Wordmark";
 import { LANDING, SITE } from "~/content";
@@ -10,6 +8,7 @@ export function meta() {
   return [
     { title: SITE.name },
     { name: "description", content: SITE.description },
+    { tagName: "link", rel: "canonical", href: SITE.url },
     { property: "og:type", content: "website" },
     { property: "og:url", content: SITE.url },
     { property: "og:title", content: SITE.name },

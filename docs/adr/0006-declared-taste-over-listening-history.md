@@ -1,4 +1,4 @@
-# 0006 — Declared taste over imported listening history
+# 0006. Declared taste over imported listening history
 
 **Status:** Accepted · 2026-08-28
 

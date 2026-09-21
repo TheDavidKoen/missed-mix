@@ -1,6 +1,3 @@
-/* login.tsx — Sign-in. The action delegates to submitCredentials and the component
-   renders AuthPanel. */
-
 import { AuthPanel } from "~/components/AuthPanel";
 import { AUTH, SITE } from "~/content";
 import { submitCredentials } from "~/lib/auth";

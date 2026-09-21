@@ -1,4 +1,4 @@
-# 0010 — Avatars in MongoDB rather than R2
+# 0010. Avatars in MongoDB rather than R2
 
 **Status:** Accepted · 2026-09-01
 
@@ -23,7 +23,7 @@ field keyed by `usernameLower`.
 ## Rationale
 
 Atlas M0 is already provisioned, already free, and gives 512 MB. An avatar is
-capped at 2 MB by [the upload rules](../ARCHITECTURE.md), so the ceiling is
+capped at 2 MB by [the upload rules](../architecture.md), so the ceiling is
 comfortably beyond any plausible demo. Adding a second storage service to hold at
 most a few hundred small files was never proportionate.
 

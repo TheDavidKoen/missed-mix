@@ -1,6 +1,3 @@
-/* AvatarField.tsx — Avatar upload with a live preview of the chosen file before it is
-   saved. */
-
 import { useEffect, useState } from "react";
 
 export function AvatarField({

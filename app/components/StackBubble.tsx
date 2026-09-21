@@ -1,7 +1,3 @@
-/* StackBubble.tsx — A stowed dock bubble and the stack sheet it opens. The sheet is a
-   native dialog, which supplies focus trapping and Escape to close; the click
-   listener adds dismissal by backdrop, whose target is the dialog itself. */
-
 import { useEffect, useRef, useState } from "react";
 
 import { DOCK, STACK } from "~/content";
@@ -18,6 +14,7 @@ export function StackBubble() {
     if (!dialog) return;
 
     const dismiss = (event: MouseEvent) => {
+      // A click on the backdrop targets the dialog itself, never one of its children.
       if (event.target === dialog) dialog.close();
     };
 

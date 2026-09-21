@@ -1,6 +1,3 @@
-/* MainNav.tsx — The signed-in header: wordmark, navigation and log out. The navigation
-   appears only once a profile exists, and carries the unread badge. */
-
 import { Form, NavLink } from "react-router";
 import { NAV } from "~/content";
 import { PillButton } from "./Pill";
