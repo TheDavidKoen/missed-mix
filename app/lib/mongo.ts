@@ -1,6 +1,5 @@
-/* mongo.ts — MongoDB access. beginDbSession and runInDbSession give a request one shared
-   connection, withDb hands that connection to a caller, and each ensure*Indexes asserts
-   the unique index its write path depends on. */
+/* Data access. A MongoClient cannot outlive the request that opened it on Workers, so
+   withDb shares one connection per request through AsyncLocalStorage instead of pooling. */
 
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { Binary, Collection, Db, MongoClient } from "mongodb";
@@ -22,6 +21,8 @@ class DbSession {
   constructor(private readonly env: Env) {}
 
   db(): Promise<Db> {
+    /* The promise is cached, not the client, so loaders running in parallel wait on one
+       handshake instead of each opening their own. */
     this.opening ??= (async () => {
       const { MongoClient } = await import("mongodb");
 

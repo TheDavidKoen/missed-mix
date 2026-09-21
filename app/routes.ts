@@ -1,6 +1,3 @@
-/* routes.ts — Route table. Each URL maps to one module, and the signed-in layout wraps
-   the routes that require an account. */
-
 import { index, layout, type RouteConfig, route } from "@react-router/dev/routes";
 
 export default [

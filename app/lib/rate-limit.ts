@@ -1,5 +1,5 @@
-/* rate-limit.ts — In-isolate request budgets. limitKey identifies a caller,
-   tooManyAttempts records an attempt and reports whether the budget is spent. */
+/* Request budgets held in the memory of one Worker isolate. Cloudflare runs many isolates,
+   so this slows a single client down; it does not enforce a global limit. */
 
 const WINDOW_MS = 60_000;
 

@@ -1,4 +1,4 @@
-# 0003 — GitHub Flow, branches deleted after merge
+# 0003. GitHub Flow, branches deleted after merge
 
 **Status:** Accepted · 2026-08-28
 

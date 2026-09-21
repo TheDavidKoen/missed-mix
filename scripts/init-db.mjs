@@ -1,6 +1,3 @@
-/* init-db.mjs — Creates the indexes a new cluster needs. Run once, with pnpm run
-   init-db. */
-
 import { setServers } from "node:dns";
 import { readFileSync } from "node:fs";
 import { MongoClient } from "mongodb";

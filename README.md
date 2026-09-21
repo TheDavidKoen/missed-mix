@@ -2,7 +2,7 @@
 
 Missed Mix is a social app that matches people on music taste. You declare what
 you listen to, then you send a
-**vibration** — a nudge the other person can accept before any conversation opens.
+**vibration**: a nudge the other person can accept before any conversation opens.
 
 ## Stack
 
@@ -17,6 +17,7 @@ you listen to, then you send a
 | Identity | Username and password, no email, no third party |
 | Catalogue | Spotify Web API, Client Credentials only |
 | Lint + format | Biome |
+| Tests | Vitest, beside the modules they cover |
 | Fonts | Figtree, self-hosted via Fontsource |
 | Host | Cloudflare Pages |
 
@@ -56,7 +57,7 @@ They do different jobs, and you will use both.
 | Reload | HMR, instant | Rebuild required |
 | Database | **No.** The driver cannot load | **Yes.** Real Atlas |
 | Signed-in pages | No, you cannot log in | **Yes** |
-| Security headers | No | Yes |
+| Security headers and CSP | No | Yes |
 | Secrets | Loaded | Loaded via `--env-file .dev.vars` |
 
 Use `pnpm dev` for anything visual: pages, layout, copy, styles, validation and
@@ -77,7 +78,8 @@ response headers and asset serving as they ship.
 | `pnpm run typecheck` | Wrangler types, React Router typegen, `tsc -b` |
 | `pnpm lint` | Biome lint + format check |
 | `pnpm run lint:fix` | Apply Biome's safe fixes |
-| `pnpm verify` | `typecheck` then `lint` — run before opening a PR |
+| `pnpm test` | Run the unit tests once |
+| `pnpm verify` | Types, lint, tests, the Pages bundle and the budget. Run before opening a PR |
 | `pnpm run budget` | Assert the performance budget and the edge guards |
 | `pnpm run init-db` | Create the indexes every collection relies on |
 
@@ -101,16 +103,17 @@ app/
 ├── lib/              Boundary logic. No JSX
 │   ├── auth          Credential schemas, registration, sign-in
 │   ├── avatar        Upload validation and storage
-│   ├── context       Carries env from the worker into loaders
-│   ├── form          Zod errors to field errors
+│   ├── context       Env and the signed-in viewer, for loaders and actions
+│   ├── form          Zod errors to field errors, JSON form values
 │   ├── mongo         Request-scoped connection, collections, indexes
 │   ├── password      PBKDF2 hashing and verification
 │   ├── profile       Profile schema and store
 │   ├── rate-limit    In-isolate request budgets
-│   ├── session       Signed cookie sessions
+│   ├── session       Signed cookie sessions and the signed-in middleware
 │   ├── viewer        One read for the signed-in layout
 │   ├── spotify       Client Credentials token and search
-│   └── vibrations    Sending, accepting, conversations
+│   ├── vibrations    Sending, accepting, conversations
+│   └── *.test.ts     Unit tests beside the modules they cover
 ├── routes/         Route modules, one file per URL
 ├── content.ts      All user-facing copy
 ├── app.css         Design tokens in @theme
@@ -124,11 +127,12 @@ public/             Served as-is
 workers/            Worker entry for the React Router request handler
 scripts/
 ├── bundle-pages.mjs  Reshapes the Workers build into a Pages bundle
-└── check-budget.mjs  Performance budget and edge regression guards
+├── check-budget.mjs  Performance budget and edge regression guards
+└── init-db.mjs       Creates the indexes a new cluster needs
 docs/
 ├── adr/            Architecture decision records
-├── ARCHITECTURE.md How the pieces fit
-└── PERFORMANCE.md  Budget and measurements
+├── architecture.md How the pieces fit
+└── performance.md  Budget and measurements
 ```
 
 **Copy lives in `app/content.ts`, not in components.** Headlines, step
@@ -216,58 +220,53 @@ pre-PR checklist.
 
 Every pull request into `main` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
-| Job | Does |
-|---|---|
-| `verify` | `tsc`, Biome, production build, Pages bundle, budget and edge guards |
-| `lighthouse` | Audits the served Pages bundle, three runs, desktop preset |
+| Job | Step | Does |
+|---|---|---|
+| Verify | Types | Wrangler types, React Router typegen, `tsc -b` |
+| Verify | Lint and format | Biome |
+| Verify | Tests | Vitest over `app/lib` |
+| Verify | Production build | `react-router build`, reshaped into a Pages bundle |
+| Verify | Performance budget | Fails over budget, or if the edge entry loses a guard |
+| Verify | Dependency audit | Fails on a high or critical advisory in production dependencies |
+| Lighthouse | Audit | Three desktop runs: SEO 100, accessibility and best practices 95 or higher |
 
-The budget step enforces [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) and guards
-three regressions that are otherwise invisible: the server bundle becoming
-publicly readable, SSR responses losing their security headers, and the
-stylesheet quietly reaching out to Google Fonts.
+Actions are pinned to commit SHAs, and Dependabot keeps them and the npm dependencies current.
+Pushing a `v*.*.*` tag runs [`release.yml`](.github/workflows/release.yml), which checks the
+tag against `package.json` and publishes a GitHub release from `CHANGELOG.md`.
+
+The budget step enforces [`docs/performance.md`](docs/performance.md) and guards
+regressions that are otherwise invisible: the server bundle becoming publicly
+readable, responses losing their Content Security Policy or security headers, and
+the stylesheet reaching out to Google Fonts.
 
 ## Deployment
 
-Cloudflare Pages. **The project is not connected to GitHub yet**, so pushing does
-not deploy and branches get no preview URLs. Deployments are made from a working
-copy:
+Cloudflare Pages, deployed by hand from `main` after a pull request merges. The
+project is not connected to GitHub, so pushing does not deploy.
 
 ```sh
 pnpm run pages:build
 pnpm exec wrangler pages deploy build/client --project-name missed-mix --branch main
 ```
 
-Connecting the repo in the dashboard would give automatic deploys and per-branch
-previews. The build settings it would need:
+`--branch main` makes it a production deployment. Without it the upload becomes a
+preview.
 
-| Setting | Value |
-|---|---|
-| Framework preset | None |
-| Build command | `pnpm run pages:build` |
-| Output directory | `build/client` |
-| Node version | `.node-version` (24.14.1) |
+The connection string, database name, session secret and Spotify credentials are
+encrypted variables in the Pages project. `wrangler pages secret put <KEY>
+--project-name missed-mix` sets a production value from stdin; preview values are
+set in the dashboard.
+
+`wrangler.jsonc` configures the Worker for local development and type generation.
+It has no `pages_build_output_dir`, so Pages does not treat it as its source of
+truth and the dashboard settings stay editable.
 
 React Router 8 has no Cloudflare Pages adapter, so
 [`scripts/bundle-pages.mjs`](scripts/bundle-pages.mjs) reshapes the Workers build
 into the `_worker.js` directory Pages expects, and writes the edge entry that does
 the asset lookup, blocks access to the server bundle, and sets the security
-headers. See [ADR 0002](docs/adr/0002-cloudflare-pages-over-workers.md).
-
-The domain is a free `is-a.dev` subdomain, registered by pull request against
-[is-a-dev/register](https://github.com/is-a-dev/register). **Attaching it cannot
-be done from the Cloudflare dashboard**: `is-a.dev` is on the
-[Public Suffix List](https://publicsuffix.org/), so the dashboard treats the
-subdomain as registrable in its own right and demands a zone transfer that is
-impossible. Use the Pages API instead:
-
-```sh
-curl -X POST "https://api.cloudflare.com/client/v4/accounts/<account-id>/pages/projects/<project>/domains" \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"missedmix.davidkoen.is-a.dev"}'
-```
-
-The token needs only **Account → Cloudflare Pages → Edit**.
+headers and Content Security Policy. See
+[ADR 0002](docs/adr/0002-cloudflare-pages-over-workers.md).
 
 ## Known issues
 
@@ -305,26 +304,17 @@ A `pnpm patch` of `tr46`, a Vite `resolve.alias` and `ssr.noExternal` were each
 tried and none fixed it, so all three were removed rather than left implying a fix
 that does not exist.
 
-**`wrangler pages dev` does not inject `.dev.vars`.** It prints "Using secrets
+**`wrangler pages dev` needs `--env-file`.** Without it, it prints "Using secrets
 defined in .dev.vars" and lists them, then hands an advanced-mode `_worker.js` an
-env containing only `CF_PAGES*` and `ASSETS`. So the second local route to
-testing auth is closed too.
-
-Together those two mean **auth is verified by deploying, not locally**. A deployed
-Pages project injects secrets normally and has none of these problems.
-
-```sh
-pnpm run pages:build
-pnpm exec wrangler pages deploy build/client --project-name missed-mix --branch main
-```
-
-Secrets go up with `wrangler pages secret put <KEY> --project-name missed-mix`,
-which reads the value from stdin and writes to **production only**; Preview
-secrets have to be set in the dashboard.
+env containing only `CF_PAGES*` and `ASSETS`, so nothing that needs a secret
+works. `pnpm preview` passes `--env-file .dev.vars`, which is why sign-in and the
+database work there.
 
 **Node's SRV lookup can fail on Windows.** `pnpm run init-db` dies with
 `querySrv ECONNREFUSED` when c-ares falls back to `127.0.0.1`. Set
-`DNS_SERVERS` in `.dev.vars`.
+`DNS_SERVERS` in `.dev.vars` to a public resolver such as `1.1.1.1`. A router
+address works only on the network it belongs to, and fails elsewhere with
+`querySrv ETIMEOUT`.
 
 **`pnpm create cloudflare` fails on Windows.** It shells out to `pnpm dlx`, which
 trips over a stale symlink in the pnpm store. Use `npm create cloudflare` and swap

@@ -1,8 +1,5 @@
-/* profile.tsx — The profile form. The action stores the avatar, validates the rest and
-   saves, reporting field errors without losing the upload. */
-
 import { useEffect, useRef } from "react";
-import { Form, redirect, useRouteLoaderData } from "react-router";
+import { Form, useRouteLoaderData } from "react-router";
 
 import { AvatarField } from "~/components/AvatarField";
 import { Field } from "~/components/Field";
@@ -11,10 +8,9 @@ import { PillButton } from "~/components/Pill";
 import type { PickKey } from "~/content";
 import { PROFILE, PROMPTS, SITE } from "~/content";
 import { storeAvatar } from "~/lib/avatar";
-import { cloudflareContext } from "~/lib/context";
+import { cloudflareContext, viewerContext } from "~/lib/context";
 import { fieldErrorsFrom } from "~/lib/form";
 import { parsePicks, profileSchema, saveProfile } from "~/lib/profile";
-import { currentUsername } from "~/lib/session";
 import type { Route } from "./+types/profile";
 import type { loader as signedInLoader } from "./signed-in";
 
@@ -24,8 +20,7 @@ export function meta() {
 
 export async function action({ request, context }: Route.ActionArgs) {
   const { env } = context.get(cloudflareContext);
-  const username = await currentUsername(request, env);
-  if (!username) throw redirect("/login");
+  const { usernameLower } = context.get(viewerContext);
 
   const form = await request.formData();
 
@@ -44,14 +39,14 @@ export async function action({ request, context }: Route.ActionArgs) {
   let avatarUpdated = false;
 
   if (avatar instanceof File && avatar.size > 0) {
-    const failure = await storeAvatar(env, username.toLowerCase(), avatar);
+    const failure = await storeAvatar(env, usernameLower, avatar);
 
     if (failure === "too-large") avatarError = "That image is larger than 2 MB.";
     else if (failure === "not-an-image") avatarError = "That file is not a JPEG, PNG or WebP.";
     else avatarUpdated = true;
   }
 
-  await saveProfile(env, username.toLowerCase(), parsed.data, avatarUpdated);
+  await saveProfile(env, usernameLower, parsed.data, avatarUpdated);
   return { fieldErrors: fieldErrorsFrom(null), avatarError, saved: true };
 }
 

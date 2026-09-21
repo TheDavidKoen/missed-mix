@@ -1,4 +1,4 @@
-# 0007 — Native `<details>` over a JavaScript accordion
+# 0007. Native `<details>` over a JavaScript accordion
 
 **Status:** Accepted · 2026-08-31
 

@@ -13,9 +13,9 @@ SESSION_SECRET="replace-me"
 
 # Optional, local only. Node's SRV lookup goes through c-ares rather than the OS
 # resolver, and on Windows it sometimes falls back to 127.0.0.1 where nothing is
-# listening. Set this to your router or any working resolver if pnpm run init-db
-# fails with querySrv ECONNREFUSED.
-# DNS_SERVERS="10.20.0.1"
+# listening. Set this to a public resolver if pnpm run init-db fails with querySrv
+# ECONNREFUSED. Avoid a router address: it stops answering on any other network.
+# DNS_SERVERS="1.1.1.1,8.8.8.8"
 
 
 SPOTIFY_CLIENT_ID=""

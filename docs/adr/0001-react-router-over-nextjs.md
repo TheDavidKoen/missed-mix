@@ -1,4 +1,4 @@
-# 0001 — React Router 8 over Next.js
+# 0001. React Router 8 over Next.js
 
 **Status:** Accepted · 2026-08-28
 
@@ -44,7 +44,7 @@ render fast.
 - A smaller ecosystem than Next.js: fewer drop-in libraries assume this framework,
   and more will be written here.
 - Roughly 95 KB gzip of React and router runtime arrives on every route. That is
-  the floor, and `docs/PERFORMANCE.md` budgets around it rather than pretending it
+  the floor, and `docs/performance.md` budgets around it rather than pretending it
   can be tuned away.
 - Migrating away would mean rewriting route modules, though loaders and actions
   are close enough to plain handlers that the logic inside them would survive.

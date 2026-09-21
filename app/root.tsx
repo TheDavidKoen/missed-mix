@@ -1,6 +1,3 @@
-/* root.tsx — Document shell. Layout renders the HTML skeleton every route is wrapped in,
-   App renders the matched route, and ErrorBoundary catches whatever a route throws. */
-
 import type { ReactNode } from "react";
 import {
   isRouteErrorResponse,
@@ -26,6 +23,7 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
+    // Rendered collapsed on the server so the stowed bubbles never flash open before hydration.
     <html lang="en" className="h-full" data-dock="closed">
       <head>
         <meta charSet="utf-8" />

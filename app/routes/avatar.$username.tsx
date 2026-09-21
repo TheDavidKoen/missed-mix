@@ -1,5 +1,3 @@
-/* avatar.$username.tsx — Serves an avatar's bytes to signed-in viewers only. */
-
 import { readAvatar } from "~/lib/avatar";
 import { cloudflareContext } from "~/lib/context";
 import { currentUsername } from "~/lib/session";

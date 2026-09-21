@@ -1,4 +1,4 @@
-# 0009 — MongoDB Atlas over Cloudflare D1
+# 0009. MongoDB Atlas over Cloudflare D1
 
 **Status:** Accepted · 2026-08-31
 
@@ -56,7 +56,7 @@ Three of these are real losses and are the price of the decision.
   and a gitignored `.dev.vars`, and the fact that nothing stored here is real.
 - **"No third-party requests" stops being true.** It still holds for the browser,
   which contacts nothing but this origin. The server now talks to Atlas on most
-  requests. `docs/ARCHITECTURE.md` says so rather than keeping the old claim.
+  requests. `docs/architecture.md` says so rather than keeping the old claim.
 - **Schema is not enforced by the platform.** SQLite would have rejected a
   duplicate username through a table constraint declared in a migration. Here
   uniqueness is an index, and an index can be absent without anything failing

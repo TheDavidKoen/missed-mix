@@ -1,7 +1,3 @@
-/* spotify.ts — Spotify search over Client Credentials. accessToken caches the app token,
-   search returns the picks a profile can hold, pickSchema validates one on the way back
-   in. */
-
 import { z } from "zod";
 
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
@@ -129,6 +125,7 @@ export const pickSchema = z.object({
   image: z
     .string()
     .url()
+    // Only Spotify's image host, so a saved pick cannot embed an arbitrary tracking URL.
     .refine((value) => value.startsWith(IMAGE_HOST), "Unexpected image host.")
     .nullable(),
 });

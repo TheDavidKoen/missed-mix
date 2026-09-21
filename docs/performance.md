@@ -19,11 +19,11 @@ never sent anywhere.
 
 | Bucket | Budget | Measured |
 |---|---|---|
-| Client JavaScript | 125 KB | 114.4 KB |
-| CSS | 8 KB | 5.8 KB |
+| Client JavaScript | 125 KB | 115.1 KB |
+| CSS | 8 KB | 5.9 KB |
 | Fonts | 35 KB | 29.7 KB |
 
-Measured 2026-09-07.
+Measured 2026-09-21.
 
 ## Where the JavaScript goes
 
@@ -105,10 +105,10 @@ made almost exactly:
 | `/mixers/:username` | 3 | 0.85 s |
 
 Loaders now share one connection per request
-([Architecture](ARCHITECTURE.md#database-connections)), so that slope flattens: a
+([Architecture](architecture.md#database-connections)), so that slope flattens: a
 route pays one handshake regardless of how many reads it makes. Locally, where the
 hop to Atlas is longer and every figure is higher, `/mixers/:username` went from
-costing 63% more than `/profile` to costing 5% more — the gap between one read and
+costing 63% more than `/profile` to costing 5% more. The gap between one read and
 three is now round trips over an open socket, not new connections.
 
 Two rules follow, and they are worth keeping in mind when adding a route:
@@ -139,4 +139,4 @@ SEO is switched off for `/register` because that page is deliberately `noindex`,
 which Lighthouse scores as a failure. Auditing it at all is for the accessibility
 pass: it holds the only form in the app so far.
 
-`csp-xss` is off because the app sets no Content Security Policy.
+`csp-xss` runs against the nonce-based Content Security Policy set by the edge entry.

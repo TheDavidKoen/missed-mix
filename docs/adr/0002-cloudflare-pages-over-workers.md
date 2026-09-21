@@ -1,4 +1,4 @@
-# 0002 — Cloudflare Pages over Workers, with a generated edge entry
+# 0002. Cloudflare Pages over Workers, with a generated edge entry
 
 **Status:** Accepted · 2026-08-28
 

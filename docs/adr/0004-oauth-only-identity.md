@@ -1,4 +1,4 @@
-# 0004 — OAuth-only identity, no passwords
+# 0004. OAuth-only identity, no passwords
 
 **Status:** Superseded by [0008](0008-demo-credentials.md) · 2026-08-28, superseded 2026-08-31
 

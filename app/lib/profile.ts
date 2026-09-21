@@ -1,9 +1,6 @@
-/* profile.ts — Profile storage. profileSchema validates the form, parsePicks lifts the
-   six pick fields out of it, saveProfile writes, and listOtherProfiles and
-   readPublicProfile read. */
-
 import { z } from "zod";
 
+import { parseJson } from "./form";
 import { ensureProfileIndexes, profiles, withDb } from "./mongo";
 import { pickSchema } from "./spotify";
 
@@ -62,23 +59,7 @@ export async function saveProfile(
 const PICK_KEYS = ["childhood", "excited", "cloudy", "work", "topAlbum", "currentSong"] as const;
 
 export function parsePicks(form: FormData) {
-  const picks: Record<string, unknown> = {};
-
-  for (const key of PICK_KEYS) {
-    const raw = form.get(`pick.${key}`);
-    if (typeof raw !== "string" || raw === "") {
-      picks[key] = null;
-      continue;
-    }
-
-    try {
-      picks[key] = JSON.parse(raw);
-    } catch {
-      picks[key] = null;
-    }
-  }
-
-  return picks;
+  return Object.fromEntries(PICK_KEYS.map((key) => [key, parseJson(form.get(`pick.${key}`))]));
 }
 
 export async function listOtherProfiles(env: Env, usernameLower: string) {

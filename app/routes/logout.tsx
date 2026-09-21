@@ -1,11 +1,10 @@
-/* logout.tsx — Ends the session and returns to the landing page. */
-
 import { redirect } from "react-router";
 
 import { cloudflareContext } from "~/lib/context";
 import { endSession } from "~/lib/session";
 import type { Route } from "./+types/logout";
 
+/* A GET never signs out, so a prefetch or an image pointed here cannot end a session. */
 export async function loader() {
   throw redirect("/");
 }

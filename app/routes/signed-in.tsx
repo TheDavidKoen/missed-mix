@@ -1,20 +1,18 @@
-/* signed-in.tsx — Layout for every route that needs an account. The loader performs the
-   one profile read the header and child routes share. */
-
-import { Outlet, redirect } from "react-router";
+import { Outlet } from "react-router";
 
 import { MainNav } from "~/components/MainNav";
-import { cloudflareContext } from "~/lib/context";
-import { currentUsername } from "~/lib/session";
+import { cloudflareContext, viewerContext } from "~/lib/context";
+import { requireViewer } from "~/lib/session";
 import { readViewer } from "~/lib/viewer";
 import type { Route } from "./+types/signed-in";
 
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const { env } = context.get(cloudflareContext);
-  const username = await currentUsername(request, env);
-  if (!username) throw redirect("/login");
+export const middleware: Route.MiddlewareFunction[] = [requireViewer];
 
-  const { profile, unread } = await readViewer(env, username.toLowerCase());
+export async function loader({ context }: Route.LoaderArgs) {
+  const { env } = context.get(cloudflareContext);
+  const { username, usernameLower } = context.get(viewerContext);
+
+  const { profile, unread } = await readViewer(env, usernameLower);
   return { username, profile, unread };
 }
 

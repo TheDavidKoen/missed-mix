@@ -1,10 +1,7 @@
-/* vibrations.tsx — Vibrations waiting on the viewer, and the conversations already open. */
-
-import { Link, redirect } from "react-router";
+import { Link } from "react-router";
 
 import { SITE, VIBRATION } from "~/content";
-import { cloudflareContext } from "~/lib/context";
-import { currentUsername } from "~/lib/session";
+import { cloudflareContext, viewerContext } from "~/lib/context";
 import { listVibrations } from "~/lib/vibrations";
 import type { Route } from "./+types/vibrations";
 
@@ -12,12 +9,9 @@ export function meta() {
   return [{ title: `Vibrations | ${SITE.name}` }, { name: "robots", content: "noindex" }];
 }
 
-export async function loader({ request, context }: Route.LoaderArgs) {
+export async function loader({ context }: Route.LoaderArgs) {
   const { env } = context.get(cloudflareContext);
-  const username = await currentUsername(request, env);
-  if (!username) throw redirect("/login");
-
-  const me = username.toLowerCase();
+  const me = context.get(viewerContext).usernameLower;
   const all = await listVibrations(env, me);
 
   return {

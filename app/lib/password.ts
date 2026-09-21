@@ -1,7 +1,8 @@
-/* password.ts — Password hashing over Web Crypto. hashPassword derives a salted PBKDF2
-   digest, verifyPassword re-derives it with the parameters stored alongside and compares
-   in constant time. */
+/* Password hashing with PBKDF2-HMAC-SHA-256 over Web Crypto. The stored string carries its
+   own iteration count, so verification never assumes the current setting. */
 
+/* Far below the OWASP guidance of 600,000, because the free plan allows about 10 ms of CPU
+   per request. Acceptable only because every account here is disposable (ADR 0008). */
 const ITERATIONS = 5_000;
 const SCHEME = "pbkdf2-sha256";
 const SALT_BYTES = 16;
@@ -31,15 +32,10 @@ async function deriveKey(password: string, salt: Uint8Array<ArrayBuffer>, iterat
   return new Uint8Array(bits);
 }
 
+/* Visits every byte whatever it finds, so the time taken reveals nothing about where a
+   guess first went wrong. An early return here would reopen a timing side channel. */
 function timingSafeEqual(a: Uint8Array, b: Uint8Array) {
-  if (a.length !== b.length) return false;
-
-  let difference = 0;
-  for (let index = 0; index < a.length; index += 1) {
-    difference |= a[index] ^ b[index];
-  }
-
-  return difference === 0;
+  return a.length === b.length && a.reduce((diff, byte, i) => diff | (byte ^ b[i]), 0) === 0;
 }
 
 export async function hashPassword(password: string) {

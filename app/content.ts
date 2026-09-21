@@ -1,6 +1,3 @@
-/* content.ts — Every user-facing string, exported as data so no sentence lives inside a
-   component. STACK carries the rows the dock's stack sheet renders. */
-
 export const SITE = {
   name: "Missed Mix",
   url: "https://missed-mix.pages.dev",
@@ -185,7 +182,7 @@ export const STACK: readonly StackEntry[] = [
     layer: "Quality gates",
     choice: "Automated checks",
     logo: "/lighthouse.svg",
-    why: "Every pull request runs CI before it can merge: formatting, type checks, a production build, a Lighthouse audit, and a size budget that fails the build if the client bundle grows past 125 KB.",
+    why: "Every pull request runs CI: formatting, type checks, unit tests, a production build, a dependency audit, a Lighthouse audit, and a size budget that fails the build if the client bundle grows past 125 KB.",
     adr: "0003-github-flow",
   },
 ];

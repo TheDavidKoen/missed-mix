@@ -1,7 +1,3 @@
-/* vibrations.ts — Vibrations and the conversations they open. sendVibration and
-   acceptVibration move a pair through its states, conversation and postMessage serve the
-   chat, unreadFor drives the navigation badge. */
-
 import type { Db } from "mongodb";
 import {
   ensureMessageIndexes,
@@ -168,6 +164,8 @@ export async function conversation(env: Env, meLower: string, otherLower: string
     const newest = thread.at(-1)?.createdAt ?? null;
     const readAt = vibration[field];
 
+    /* This loader runs on every poll, so it writes only when a message is newer than the
+       last read time. */
     if (newest && (readAt === null || readAt < newest)) {
       await vibrations(db).updateOne(
         {

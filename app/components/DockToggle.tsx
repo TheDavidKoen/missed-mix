@@ -1,8 +1,3 @@
-/* DockToggle.tsx — The dock's always-visible bubble, which expands and collapses the
-   ones stowed behind it. syncDock writes the open state to the document element,
-   where the stylesheet reads it, and marks the stowed bubbles inert so they stay
-   unreachable by keyboard while invisible. Escape or a click outside collapses. */
-
 import { useEffect, useRef, useState } from "react";
 
 import { DOCK } from "~/content";
@@ -10,9 +5,10 @@ import { DOCK } from "~/content";
 function syncDock(open: boolean) {
   document.documentElement.dataset.dock = open ? "open" : "closed";
 
-  for (const bubble of document.querySelectorAll<HTMLElement>(".launcher--stowable")) {
+  document.querySelectorAll<HTMLElement>(".launcher--stowable").forEach((bubble) => {
+    // A hidden bubble stays in the document, so without inert it is still keyboard reachable.
     bubble.inert = !open;
-  }
+  });
 }
 
 export function DockToggle() {

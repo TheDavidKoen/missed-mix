@@ -1,7 +1,3 @@
-/* app.css — Design tokens, and the few components Tailwind utilities cannot express: the
-   dock bubbles, the stack sheet's open and close transitions, and the native details
-   animation. */
-
 @import "tailwindcss" source(".");
 @import "@fontsource-variable/figtree";
 
@@ -42,6 +38,8 @@
     --dock-top: 1.25rem;
   }
 
+  /* The dock is fixed and outside the header's tree, so it reads the header's declared
+     shape through :has(). Offsets are measured against the rendered header heights. */
   :root:has([data-header="bare"]) {
     --dock-top: 4.75rem;
   }
